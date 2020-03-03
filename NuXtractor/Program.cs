@@ -1,48 +1,81 @@
-﻿using System;
+﻿using CommandLine;
+using SkiaSharp;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 
 namespace NuXtractor
 {
+    enum ExtractionMode
+    {
+        DDS,
+        DXT1
+    }
+
+    class Options
+    {
+        [Option('i', "input-file", Required = true, HelpText = "The input file")]
+        public string InputFile { get; set; }
+
+        [Option('m', "mode", Required = true, HelpText = "The extraction mode to use.")]
+        public ExtractionMode Mode { get; set; }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            using (var inputStream = File.OpenRead(args[0]))
-            using (var reader = new BinaryReader(inputStream))
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(RunOptions);
+        }
+
+        static void RunOptions(Options options)
+        {
+            using (var inputStream = File.OpenRead(options.InputFile))
+            using (var inputReader = new BinaryReader(inputStream))
             {
-                byte[] header = reader.ReadBytes(64); // Read header containing offsets to certain sections of data in the file
+                byte[] header = inputReader.ReadBytes(64); // Read header containing offsets to certain sections of data in the file
 
                 uint offset = BitConverter.ToUInt32(header.Skip(8).Take(4).ToArray()); // Extract texture data offset
 
-                reader.BaseStream.Seek(offset, SeekOrigin.Current); // Navigate to that offset
+                inputReader.BaseStream.Seek(offset, SeekOrigin.Current); // Navigate to that offset
 
-                byte[] textureIndex = reader.ReadBytes(4096); // Read index of texture data (contains several structured entries 
-                                                              // that consist of an offset and an array of texture dimensions)
+                byte[] textureIndexRaw = inputReader.ReadBytes(4096); // Read index of texture data (contains several structured entries 
+                                                                      // that consist of an offset and an array of texture dimensions)
 
-                int textureCount = textureIndex
+                uint[] textureIndex = textureIndexRaw
                     .Select((v, i) => new { Index = i, Value = v })
                     .GroupBy(x => x.Index / 4)
                     .Select(x => x.Select(v => v.Value).ToArray())
                     .Select(arr => BitConverter.ToUInt32(arr))
                     .Where(num => num <= 1024)
-                    .Count();  // Only interested in how many textures there are, although this method may be inaccurate.
+                    .ToArray();
 
                 // Start reading textures one by one
-                for (int i = 0; i < textureCount; i++)
+                for (int i = 0; i < textureIndex.Length; i++)
                 {
-                    using (var outputStream = File.Create($"texture_{i}.data")) // Open file to write texture to
-                    using (var writer = new BinaryWriter(outputStream))
+                    using (var outputStream = File.Create($"texture_{i}.{options.Mode}")) // Open file to write texture to
+                    using (var outputWriter = new BinaryWriter(outputStream))
                     {
                         int paddingIndex;
                         do
                         {
-                            byte[] chunk = reader.ReadBytes(256); // Data is padded to nearest multiple of 256, 
-                                                                  // so only read that many bytes at a time.
+                            byte[] chunk = inputReader.ReadBytes(256); // Data is padded to nearest multiple of 256, 
+                                                                       // so only read that many bytes at a time.
                             paddingIndex = Encoding.ASCII.GetString(chunk).IndexOf("padding");        // Find padding
-                            writer.Write(chunk, 0, paddingIndex == -1 ? chunk.Length : paddingIndex); // and exclude it
+                            outputWriter.Write(chunk, 0, paddingIndex == -1 ? chunk.Length : paddingIndex); // and exclude it
                         } while (paddingIndex == -1);
+                    }
+
+                    if (options.Mode != ExtractionMode.DXT1 || textureIndex[i] == 0) continue;
+
+                    using (var convertStream = File.OpenRead($"texture_{i}.{options.Mode}"))
+                    using (var convertReader = new BinaryReader(convertStream))
+                    using (var bitmap = DXTConvert.UncompressDXT1(convertReader, (int)textureIndex[i]))
+                    using (var outputStream = new SKFileWStream($"texture_{i}.png"))
+                    {
+                        SKPixmap.Encode(outputStream, bitmap, SKEncodedImageFormat.Png, 100);
                     }
                 }
             }
