@@ -26,7 +26,7 @@ namespace NuXtractor
                     .GroupBy(x => x.Index / 4)
                     .Select(x => x.Select(v => v.Value).ToArray())
                     .Select(arr => BitConverter.ToUInt32(arr))
-                    .Where(num => num < 256)
+                    .Where(num => num <= 1024)
                     .Count();  // Only interested in how many textures there are, although this method may be inaccurate.
 
                 // Start reading textures one by one
