@@ -3,11 +3,25 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include=".\DXTConvert.cs" />
+    <Compile Include=".\Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="gen\NuxFile.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
+    <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.7.0" />
     <PackageReference Include="SkiaSharp" Version="1.68.1.1" />
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="kaitai-struct-compiler ttgames_nux.ksy -t csharp -d gen" />
+  </Target>
 </Project>

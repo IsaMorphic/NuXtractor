@@ -17,8 +17,10 @@
  */
 
 using CommandLine;
+using Kaitai;
 using SkiaSharp;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -46,9 +48,6 @@ namespace NuXtractor
 
         [Option('m', "mode", Required = true, HelpText = "The extraction mode to use.")]
         public ExtractionMode Mode { get; set; }
-
-        [Option('x', "x-flag", Required = false, HelpText = "Use this flag if texture sizes are incorrect.")]
-        public bool Flag { get; set; }
     }
 
     class Program
@@ -90,35 +89,26 @@ namespace NuXtractor
 
             try
             {
-                using (var inputStream = File.OpenRead(options.InputFile))
-                using (var inputReader = new BinaryReader(inputStream))
+                NuxFile nux = NuxFile.FromFile(options.InputFile);
+
+                List<NuxFile.TextureData> textures = new List<NuxFile.TextureData>();
+
+                textures.Add(nux.Textures.FirstTexture);
+                textures.AddRange(nux.Textures.Textures);
+                textures.Add(nux.Textures.LastTexture);
+
+                string outputDir = options.InputFile + ".textures";
+                Directory.CreateDirectory(outputDir);
+
+                // Start reading textures one by one
+                for (int i = 0; i < textures.Count; i++)
                 {
-                    string outputDir = options.InputFile + ".textures";
-                    Directory.CreateDirectory(outputDir);
-
-                    byte[] header = inputReader.ReadBytes(64); // Read header containing offsets to certain sections of data in the file
-
-                    uint offset = BitConverter.ToUInt32(header.Skip(8).Take(4).ToArray()); // Extract texture data offset
-
-                    inputReader.BaseStream.Seek(offset, SeekOrigin.Current); // Navigate to that offset
-
-                    byte[] textureIndexRaw = inputReader.ReadBytes(4096); // Read index of texture data (contains several structured entries 
-                                                                          // that consist of an offset and an array of texture dimensions)
-                    uint[] textureIndex = textureIndexRaw
-                        .Select((v, i) => new { Index = i, Value = v })
-                        .GroupBy(x => x.Index / 4)
-                        .Select(x => x.Select(v => v.Value).ToArray())
-                        .Select(arr => BitConverter.ToUInt32(arr))
-                        .Where(num => num <= 1024).Skip(2)
-                        .Where((num, i) => i % 4 == (options.Flag ? 1 : 0))
-                        .ToArray();
-
-                    // Start reading textures one by one
-                    for (int i = 0; i < textureIndex.Length; i++)
+                    using (var inputStream = new MemoryStream(textures[i].Data))
+                    using (var inputReader = new BinaryReader(inputStream))
                     {
                         string outputPath = Path.Combine(outputDir, $"texture_{i}.{options.Mode}");
 
-                        WriteLine($"Found texture #{i} at address: {inputReader.BaseStream.Position.ToString("X")}; Dumping to file: {outputPath}");
+                        WriteLine($"Found texture #{i}; Dumping to file: {outputPath}");
 
                         using (var outputStream = File.Create(outputPath)) // Open file to write texture to
                         using (var outputWriter = new BinaryWriter(outputStream))
@@ -128,6 +118,8 @@ namespace NuXtractor
                             {
                                 byte[] chunk = inputReader.ReadBytes(256); // Data is padded to nearest multiple of 256, 
                                                                            // so only read that many bytes at a time.
+                                if (chunk.Length == 0) break;
+
                                 paddingIndex = Encoding.ASCII.GetString(chunk).IndexOf("padding");        // Find padding
                                 outputWriter.Write(chunk, 0, paddingIndex == -1 ? chunk.Length : paddingIndex); // and exclude it
                             } while (paddingIndex == -1);
@@ -139,11 +131,14 @@ namespace NuXtractor
                         {
                             WriteLine($"Trying to convert texture from file: {outputPath} to PNG...", OutputImportance.Verbose);
 
-                            string convertedPath = Path.Combine(outputDir, $"texture_{i}.png");
+                            var size = textures[i].Sizes
+                                .OrderBy(s => Math.Abs(s - Math.Pow(2, Math.Ceiling(Math.Log2(s)))))
+                                .First();
 
+                            string convertedPath = Path.Combine(outputDir, $"texture_{i}.png");
                             using (var convertStream = File.OpenRead(outputPath))
                             using (var convertReader = new BinaryReader(convertStream))
-                            using (var bitmap = DXTConvert.UncompressDXT1(convertReader, (int)textureIndex[i]))
+                            using (var bitmap = DXTConvert.UncompressDXT1(convertReader, (int)size))
                             using (var outputStream = new SKFileWStream(convertedPath))
                             {
                                 WriteLine($"Conversion successful! Writing output to file: {convertedPath}", OutputImportance.Verbose);
@@ -156,17 +151,16 @@ namespace NuXtractor
                         }
                     }
                 }
+
+                WriteLine("Thanks for using NuXtractor, a tool created by Yodadude2003.", OutputImportance.Highlight);
+                WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
+                WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
+                WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
             }
             catch (Exception)
             {
                 WriteLine("An error occured during the extraction process. File may be in use, format may be bad, or textures are corrupt.", OutputImportance.Error);
             }
-            
-            WriteLine();
-            WriteLine("Thanks for using NuXtractor, a tool created by Yodadude2003.", OutputImportance.Highlight);
-            WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
-            WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
-            WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
         }
     }
 }
