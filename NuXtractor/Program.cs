@@ -43,10 +43,10 @@ namespace NuXtractor
 
     class Options
     {
-        [Option('i', "input-file", Required = true, HelpText = "The input file.")]
+        [Option('i', "input-file", Required = true, HelpText = "Path to a nux or nup file.")]
         public string InputFile { get; set; }
 
-        [Option('m', "mode", Required = true, HelpText = "The extraction mode to use.")]
+        [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be either DDS or DXT1.")]
         public ExtractionMode Mode { get; set; }
     }
 
