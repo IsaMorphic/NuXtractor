@@ -44,60 +44,46 @@ types:
     seq:
       - id: data_offset
         type: u4
-      - id: first_entry
-        type: texture_entry
-      - id: unk003
+      - id: last_offset
+        type: u4
+      - id: unk002
         type: u4
       - id: entries
         type: texture_entry
         repeat: until
-        repeat-until: _.sizes_next.array.max > 1024
+        repeat-until: _.offset > last_offset
   texture_entry:
     seq:
+      - id: width
+        type: u4
+      - id: height
+        type: u4
+      - id: unk003
+        type: u4
+      - id: unk004
+        type: u4
       - id: offset # describes offset to start of next section of textures
         type: u4
-      - id: sizes_next # an array of ints that describes the width of each texture in a section in order
-        type: texture_sizes
-  texture_sizes:
-    seq:
-      - id: array
-        type: u4
-        repeat: expr
-        repeat-expr: 4
   texture_data:
     params:
-      - id: length
-        type: u4
-      - id: zizes
+      - id: entry
+        type: struct
+      - id: next_entry
         type: struct
     seq:
       - id: data
-        size: length
+        size: -entry.as<texture_entry>.offset + [_parent.texture_header.last_offset, next_entry.as<texture_entry>.offset].min
     instances:
-      sizes:
-        value: zizes.as<texture_sizes>.array
-  texture_array:
-    seq:
-      - id: first_texture
-        type: texture_data(entries[1].offset - entries[0].offset, first_entry.sizes_next)
-      - id: textures
-        type: texture_data(entries[_index+2].offset - entries[_index+1].offset, entries[_index].sizes_next)
-        repeat: expr
-        repeat-expr: entries.size-2
-      - id: last_texture
-        type: texture_data(entries[entries.size-1].offset - entries[entries.size-2].offset, entries[entries.size-2].sizes_next)
-    instances:
-      first_entry:
-        value: _root.texture_header.first_entry
-      entries:
-        value: _root.texture_header.entries
+      width:
+        value: entry.as<texture_entry>.width
+      height: 
+        value: entry.as<texture_entry>.height
 instances: 
   texture_header: # textures start here
     type: texture_index
     pos: main_header.texture_offset + 64
   textures:
-    type: texture_array
+    type: texture_data(texture_header.entries[_index], texture_header.entries[_index + 1])
+    repeat: expr
+    repeat-expr: texture_header.entries.size-1
     pos: 64 + main_header.texture_offset + 4096
-    
-    
-        

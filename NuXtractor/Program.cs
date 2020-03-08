@@ -91,19 +91,14 @@ namespace NuXtractor
             {
                 NuxFile nux = NuxFile.FromFile(options.InputFile);
 
-                List<NuxFile.TextureData> textures = new List<NuxFile.TextureData>();
-
-                textures.Add(nux.Textures.FirstTexture);
-                textures.AddRange(nux.Textures.Textures);
-                textures.Add(nux.Textures.LastTexture);
 
                 string outputDir = options.InputFile + ".textures";
                 Directory.CreateDirectory(outputDir);
 
                 // Start reading textures one by one
-                for (int i = 0; i < textures.Count; i++)
+                for (int i = 0; i < nux.Textures.Count; i++)
                 {
-                    using (var inputStream = new MemoryStream(textures[i].Data))
+                    using (var inputStream = new MemoryStream(nux.Textures[i].Data))
                     using (var inputReader = new BinaryReader(inputStream))
                     {
                         string outputPath = Path.Combine(outputDir, $"texture_{i}.{options.Mode}");
@@ -131,14 +126,10 @@ namespace NuXtractor
                         {
                             WriteLine($"Trying to convert texture from file: {outputPath} to PNG...", OutputImportance.Verbose);
 
-                            var size = textures[i].Sizes
-                                .OrderBy(s => Math.Abs(s - Math.Pow(2, Math.Ceiling(Math.Log2(s)))))
-                                .First();
-
                             string convertedPath = Path.Combine(outputDir, $"texture_{i}.png");
                             using (var convertStream = File.OpenRead(outputPath))
                             using (var convertReader = new BinaryReader(convertStream))
-                            using (var bitmap = DXTConvert.UncompressDXT1(convertReader, (int)size))
+                            using (var bitmap = DXTConvert.UncompressDXT1(convertReader, (int)nux.Textures[i].Width, (int)nux.Textures[i].Height))
                             using (var outputStream = new SKFileWStream(convertedPath))
                             {
                                 WriteLine($"Conversion successful! Writing output to file: {convertedPath}", OutputImportance.Verbose);

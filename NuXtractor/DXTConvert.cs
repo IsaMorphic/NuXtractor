@@ -20,12 +20,10 @@ namespace NuXtractor
 {
     public static class DXTConvert
     {
-        public static SKBitmap UncompressDXT1(BinaryReader r, int w)
+        public static SKBitmap UncompressDXT1(BinaryReader r, int w, int h)
         {
             int blockCountX = (w + 3) / 4;
-            int blockCountY = (int)(r.BaseStream.Length / 8) / blockCountX;
-
-            int h = blockCountY * 4;
+            int blockCountY = (h + 3) / 4;
 
             var imageInfo = new SKImageInfo(w, h, SKColorType.Bgra8888, SKAlphaType.Premul);
 
