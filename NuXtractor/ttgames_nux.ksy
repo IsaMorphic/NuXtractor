@@ -46,12 +46,12 @@ types:
         type: u4
       - id: last_offset
         type: u4
-      - id: unk002
+      - id: num_entries
         type: u4
       - id: entries
         type: texture_entry
-        repeat: until
-        repeat-until: _.offset > last_offset
+        repeat: expr
+        repeat-expr: num_entries
   texture_entry:
     seq:
       - id: width
@@ -66,24 +66,23 @@ types:
         type: u4
   texture_data:
     params:
-      - id: entry
-        type: struct
-      - id: next_entry
-        type: struct
+      - id: index
+        type: s4
     seq:
       - id: data
-        size: -entry.as<texture_entry>.offset + [_parent.texture_header.last_offset, next_entry.as<texture_entry>.offset].min
+        size: '(index < _parent.entries.size - 1 ? _parent.entries[index+1].offset : _parent.last_offset) - _parent.entries[index].offset'
     instances:
       width:
-        value: entry.as<texture_entry>.width
+        value: _parent.entries[index].width
       height: 
-        value: entry.as<texture_entry>.height
+        value: _parent.entries[index].height
 instances: 
   texture_header: # textures start here
     type: texture_index
     pos: main_header.texture_offset + 64
   textures:
-    type: texture_data(texture_header.entries[_index], texture_header.entries[_index + 1])
+    type: texture_data(_index)
+    parent: texture_header
     repeat: expr
-    repeat-expr: texture_header.entries.size-1
+    repeat-expr: texture_header.entries.size
     pos: 64 + main_header.texture_offset + 4096
