@@ -17,8 +17,11 @@
   
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
-    <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.7.0" />
     <PackageReference Include="SkiaSharp" Version="1.68.1.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\KaitaiStruct\kaitai_struct_runtime_csharp.csproj" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

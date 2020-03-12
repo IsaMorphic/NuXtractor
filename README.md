@@ -4,6 +4,10 @@ NuXtractor is a tool created for the purpose of extracing textures from Lego gam
 
 NuXtractor can only be used via the command line (for now).  Although this makes it harder for the average user, it allows for powerful features such as bulk file processing (through the use of batch or bash scripts).  
 
+### Prerequisites
+
+Before you can use NuXtractor, you need to download and install the latest version of the [.NET Core Runtime](https://dotnet.microsoft.com/download/dotnet-core/current/runtime).
+
 ### Extracting textures from PC files (.nup)
 
 Open a command prompt (in the same directory as NuXtractor) and run the following command:
