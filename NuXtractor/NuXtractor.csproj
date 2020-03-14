@@ -7,14 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include=".\DXTConvert.cs" />
-    <Compile Include=".\Program.cs" />
+    <Compile Include="Formats\NupV1.cs" />
+    <Compile Include="Formats\NupV2.cs" />
+    <Compile Include="gen\NupV1.cs" />
+    <Compile Include="gen\NupV2.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="gen\NuxFile.cs" />
+    <Compile Include="*.cs" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <None Remove="*.ksy" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
     <PackageReference Include="SkiaSharp" Version="1.68.1.1" />
@@ -25,6 +31,6 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="kaitai-struct-compiler ttgames_nux.ksy -t csharp -d gen" />
+    <Exec Command="kaitai-struct-compiler *.ksy -t csharp --dotnet-namespace NuXtractor.Formats -d gen" />
   </Target>
 </Project>

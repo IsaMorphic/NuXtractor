@@ -17,16 +17,21 @@
  */
 
 using CommandLine;
-using Kaitai;
+using NuXtractor.Formats;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace NuXtractor
 {
+    enum FileFormat
+    {
+        NUPv1,
+        NUPv2
+    }
+
     enum ExtractionMode
     {
         DDS,
@@ -43,8 +48,11 @@ namespace NuXtractor
 
     class Options
     {
-        [Option('i', "input-file", Required = true, HelpText = "Path to a nux or nup file.")]
+        [Option('i', "input-file", Required = true, HelpText = "Path to the input file.")]
         public string InputFile { get; set; }
+
+        [Option('f', "format", Required = true, HelpText = "The format of the specified input file.  Can be either NUPv1 or NUPv2")]
+        public FileFormat Format { get; set; }
 
         [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be either DDS or DXT1.")]
         public ExtractionMode Mode { get; set; }
@@ -89,23 +97,34 @@ namespace NuXtractor
 
             try
             {
-                NuxFile nux = NuxFile.FromFile(options.InputFile);
+                ITextureContainer container = null;
+                switch (options.Format)
+                {
+                    case FileFormat.NUPv1:
+                        container = NupV1.FromFile(options.InputFile);
+                        break;
+                    case FileFormat.NUPv2:
+                        container = NupV2.FromFile(options.InputFile);
+                        break;
+                }
+
+                List<Texture> textures = container.GetTextures();
 
                 string outputDir = options.InputFile + ".textures";
                 Directory.CreateDirectory(outputDir);
 
                 // Start reading textures one by one
-                for (int i = 0; i < nux.Textures.Count; i++)
+                for (int i = 0; i < textures.Count; i++)
                 {
                     switch (options.Mode)
                     {
                         case ExtractionMode.DDS:
                             string dumpPath = Path.Combine(outputDir, $"texture_{i}.dds");
                             WriteLine($"Found texture #{i}; Dumping to file: {dumpPath}");
-                            File.WriteAllBytes(dumpPath, nux.Textures[i].Data);
+                            File.WriteAllBytes(dumpPath, textures[i].Data);
                             break;
                         case ExtractionMode.DXT1:
-                            using (var inputStream = new MemoryStream(nux.Textures[i].Data))
+                            using (var inputStream = new MemoryStream(textures[i].Data))
                             using (var inputReader = new BinaryReader(inputStream))
                             {
                                 try
@@ -113,7 +132,7 @@ namespace NuXtractor
                                     WriteLine($"Found texture #{i}; Converting to PNG...");
 
                                     string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
-                                    using (var bitmap = DXTConvert.UncompressDXT1(inputReader, (int)nux.Textures[i].Width, (int)nux.Textures[i].Height))
+                                    using (var bitmap = DXTConvert.UncompressDXT1(inputReader, textures[i].Width, textures[i].Height))
                                     using (var outputStream = new SKFileWStream(outputPath))
                                     {
                                         WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
