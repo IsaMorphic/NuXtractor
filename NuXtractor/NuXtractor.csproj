@@ -11,15 +11,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="gen\Gsc.cs" />
+    <Compile Include="Textures\DDSTexture.cs" />
+    <Compile Include="Textures\DXT1Texture.cs" />
+    <Compile Include="gen\GscPs2.cs" />
     <Compile Include="gen\NupV1.cs" />
     <Compile Include="gen\NupV2.cs" />
-    <Compile Include="DXTConvert.cs" />
-    <Compile Include="ITextureContainer.cs" />
+    <Compile Include="Utilities\DXTConvert.cs" />
+    <Compile Include="Textures\IndexedTexture.cs" />
+    <Compile Include="Textures\TextureContainer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Formats\NupV1.cs" />
     <Compile Include="Formats\NupV2.cs" />
-    <Compile Include="Formats\Gsc.cs" />
+    <Compile Include="Formats\GscPs2.cs" />
+    <Compile Include="Textures\Texture.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +33,10 @@
   
   <ItemGroup>
     <ProjectReference Include="..\KaitaiStruct\kaitai_struct_runtime_csharp.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="..\..\..\..\Lego Star Wars the Video Game %2528PC%2529\Custom Tools\NuXtractor\NuXtractor\NewFolder\" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

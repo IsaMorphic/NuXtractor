@@ -15,7 +15,7 @@
 #  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
 
 meta:
-  id: gsc
+  id: gsc_ps2
   file-extension: gsc
   endian: le
 seq:
@@ -73,10 +73,6 @@ types:
         type: texture_data
         size: data_length
   texture_data:
-    instances:
-      palette:
-        pos: 0x80
-        type: texture_palette
     seq:
       - id: width
         type: u2
@@ -89,25 +85,21 @@ types:
       - id: unk003
         type: u4
       - id: flag
-        type: u1
-      - id: unk004
-        size: 3
+        type: u4
       - id: palette_length
         type: u4
-      - id: palette_data
+      - id: palette
+        type: texture_palette
         size: palette_length - 4
       - id: pixels_length
         type: u4
-      - id: unk006
-        type: u4
-        repeat: until
-        repeat-until: _ == 134217728
-      - id: unk007
-        size: 8
       - id: pixels
-        size: 'flag & 1 == 1 ? width * height : width * height / 2'
+        type: texture_pixels
+        size: pixels_length - 4
   texture_palette:
     seq:
+      - id: garbage
+        type: texture_garbage
       - id: colors
         type: color
         repeat: expr
@@ -122,3 +114,19 @@ types:
         type: u1
       - id: a
         type: u1
+  texture_pixels:
+    seq:
+      - id: garbage
+        type: texture_garbage
+      - id: data
+        size: '_parent.flag & 1 == 1 ? _parent.width * _parent.height : _parent.width * _parent.height / 2'
+  texture_garbage:
+    seq:
+      - id: unk004
+        type: u4
+        repeat: until
+        repeat-until: _ == 134217728
+      - id: unk005
+        type: u4
+        repeat: expr
+        repeat-expr: 2

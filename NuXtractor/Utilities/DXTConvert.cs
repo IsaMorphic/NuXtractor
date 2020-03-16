@@ -16,7 +16,7 @@ using SkiaSharp;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace NuXtractor
+namespace NuXtractor.Utilities
 {
     public static class DXTConvert
     {

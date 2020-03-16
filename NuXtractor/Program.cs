@@ -18,26 +18,32 @@
 
 using CommandLine;
 using NuXtractor.Formats;
+using NuXtractor.Textures;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace NuXtractor
 {
     enum FileFormat
     {
-        GSC,
+        GSCps2,
         NUPv1,
         NUPv2
     }
 
-    enum ExtractionMode
+    enum TextureFormat
     {
         DDS,
         DXT1,
-        TTG
+        IDX,
+    }
+
+    enum ExtractionMode
+    {
+        DUMP,
+        CONV
     }
 
     enum OutputImportance
@@ -53,10 +59,13 @@ namespace NuXtractor
         [Option('i', "input-file", Required = true, HelpText = "Path to the input file.")]
         public string InputFile { get; set; }
 
-        [Option('f', "format", Required = true, HelpText = "The format of the specified input file.  Can be either NUPv1 or NUPv2")]
-        public FileFormat Format { get; set; }
+        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be GSC, NUPv1, NUPv2")]
+        public FileFormat FileFormat { get; set; }
 
-        [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be either DDS or DXT1.")]
+        [Option('t', "texture-format", Required = true, HelpText = "The format of the textures contained in the input file.  Can be DDS, DXT1, or IDX")]
+        public TextureFormat TextureFormat { get; set; }
+
+        [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be either DUMP or CONV.")]
         public ExtractionMode Mode { get; set; }
     }
 
@@ -97,13 +106,13 @@ namespace NuXtractor
                 return;
             }
 
+            object container = null;
             try
             {
-                ITextureContainer container = null;
-                switch (options.Format)
+                switch (options.FileFormat)
                 {
-                    case FileFormat.GSC:
-                        container = Gsc.FromFile(options.InputFile);
+                    case FileFormat.GSCps2:
+                        container = GscPs2.FromFile(options.InputFile);
                         break;
                     case FileFormat.NUPv1:
                         container = NupV1.FromFile(options.InputFile);
@@ -112,74 +121,74 @@ namespace NuXtractor
                         container = NupV2.FromFile(options.InputFile);
                         break;
                 }
-
-                List<Texture> textures = container.GetTextures();
-
-                string outputDir = options.InputFile + ".textures";
-                Directory.CreateDirectory(outputDir);
-
-                // Start reading textures one by one
-                for (int i = 0; i < textures.Count; i++)
-                {
-                    switch (options.Mode)
-                    {
-                        case ExtractionMode.DDS:
-                            string dumpPath = Path.Combine(outputDir, $"texture_{i}.dds");
-                            WriteLine($"Found texture #{i}; Dumping to file: {dumpPath}");
-                            File.WriteAllBytes(dumpPath, textures[i].Data);
-                            break;
-                        case ExtractionMode.DXT1:
-                            using (var inputStream = new MemoryStream(textures[i].Data))
-                            using (var inputReader = new BinaryReader(inputStream))
-                            {
-                                try
-                                {
-                                    WriteLine($"Found texture #{i}; Converting to PNG...");
-
-                                    string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
-                                    using (var bitmap = DXTConvert.UncompressDXT1(inputReader, textures[i].Width, textures[i].Height))
-                                    using (var outputStream = new SKFileWStream(outputPath))
-                                    {
-                                        WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
-                                        SKPixmap.Encode(outputStream, bitmap, SKEncodedImageFormat.Png, 100);
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                    WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
-                                }
-                            }
-                            break;
-                        case ExtractionMode.TTG:
-                            try
-                            {
-                                WriteLine($"Found texture #{i}; Converting to PNG...");
-
-                                string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
-                                using (var bitmap = (textures[i] as IndexedTexture).ToBitmap())
-                                using (var outputStream = new SKFileWStream(outputPath))
-                                {
-                                    WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
-                                    SKPixmap.Encode(outputStream, bitmap, SKEncodedImageFormat.Png, 100);
-                                }
-                            }
-                            catch (Exception)
-                            {
-                                WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
-                            }
-                            break;
-                    }
-                }
-
-                WriteLine("Thanks for using NuXtractor, a tool created by Yodadude2003.", OutputImportance.Highlight);
-                WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
-                WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
-                WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
             }
             catch (Exception)
             {
-                WriteLine("An error occured during the extraction process. File may be in use, format may be bad, or textures are corrupt.", OutputImportance.Error);
+                WriteLine("Error: The input file could not be parsed in the chosen format.", OutputImportance.Error);
+                return;
             }
+
+            List<Texture> textures = null;
+            try
+            {
+
+                switch (options.TextureFormat)
+                {
+                    case TextureFormat.DDS:
+                        textures = (container as ITextureContainer<DDSTexture>).GetTextures();
+                        break;
+                    case TextureFormat.DXT1:
+                        textures = (container as ITextureContainer<DXT1Texture>).GetTextures();
+                        break;
+                    case TextureFormat.IDX:
+                        textures = (container as ITextureContainer<IndexedTexture>).GetTextures();
+                        break;
+                }
+            }
+            catch (Exception)
+            {
+                WriteLine("Error: The input file does not support the specified texture format.", OutputImportance.Error);
+                return;
+            }
+
+            string outputDir = options.InputFile + ".textures";
+            Directory.CreateDirectory(outputDir);
+
+            // Start reading textures one by one
+            for (int i = 0; i < textures.Count; i++)
+            {
+                switch (options.Mode)
+                {
+                    case ExtractionMode.DUMP:
+                        string dumpPath = Path.Combine(outputDir, $"texture_{i}.{options.TextureFormat}");
+                        WriteLine($"Found texture #{i}; Dumping to file: {dumpPath}");
+                        File.WriteAllBytes(dumpPath, textures[i].Data);
+                        break;
+                    case ExtractionMode.CONV:
+                        try
+                        {
+                            WriteLine($"Found texture #{i}; Converting to PNG...");
+
+                            string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
+                            using (var bitmap = textures[i].ToBitmap())
+                            using (var outputStream = new SKFileWStream(outputPath))
+                            {
+                                WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
+                                SKPixmap.Encode(outputStream, bitmap, SKEncodedImageFormat.Png, 100);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
+                        }
+                        break;
+                }
+            }
+
+            WriteLine("Thanks for using NuXtractor, a tool created by Yodadude2003.", OutputImportance.Highlight);
+            WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
+            WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
+            WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
         }
     }
 }

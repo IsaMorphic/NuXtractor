@@ -16,25 +16,24 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using NuXtractor.Textures;
-using System.Collections.Generic;
-using System.Linq;
+using SkiaSharp;
 
-namespace NuXtractor.Formats
+namespace NuXtractor.Textures
 {
-    public partial class NupV2 : ITextureContainer<DDSTexture>
+    public abstract class Texture
     {
-        List<Texture> ITextureContainer<DDSTexture>.GetTextures()
+        public int Width { get; }
+        public int Height { get; }
+
+        public byte[] Data { get; }
+
+        public Texture(int width, int height, byte[] data)
         {
-            var section = Sections.Single(s => s.Type == "TST0");
-            var textures = section.Data as TextureIndex;
-            return textures.Data
-                .Select<TextureData, Texture>(
-                    tex => new DDSTexture(
-                        (int)tex.Width,
-                        (int)tex.Height,
-                        tex.Data)
-                    ).ToList();
+            Width = width;
+            Height = height;
+            Data = data;
         }
+
+        public abstract SKBitmap ToBitmap();
     }
 }

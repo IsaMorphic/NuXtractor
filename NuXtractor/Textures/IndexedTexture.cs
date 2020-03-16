@@ -1,9 +1,24 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿/*
+ *  Copyright 2020 Chosen Few Software
+ *  This file is part of NuXtractor.
+ *
+ *  NuXtractor is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NuXtractor is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-namespace NuXtractor.Formats
+using SkiaSharp;
+
+namespace NuXtractor.Textures
 {
     public class IndexedTexture : Texture
     {
@@ -14,7 +29,7 @@ namespace NuXtractor.Formats
             Colors = colors;
         }
 
-        public SKBitmap ToBitmap()
+        public override SKBitmap ToBitmap()
         {
             SKBitmap bitmap = new SKBitmap(Width, Height);
             switch (Colors.Length)
@@ -22,7 +37,7 @@ namespace NuXtractor.Formats
                 case 16:
                     for (int x = 0; x < Width / 2; x++)
                     {
-                        for (int y = 0; y < Height; y++) 
+                        for (int y = 0; y < Height; y++)
                         {
                             byte pair = Data[y * Width / 2 + x];
                             int index1 = pair & 15;
@@ -44,25 +59,6 @@ namespace NuXtractor.Formats
                     break;
             }
             return bitmap;
-        }
-    }
-
-    public partial class Gsc : ITextureContainer
-    {
-        public List<Texture> GetTextures()
-        {
-            var section = Sections.Single(s => s.Type == "TST0");
-            var textures = section.Data as TextureIndex;
-            return textures.Entries
-                .Select<TextureEntry, Texture>(
-                    entry => new IndexedTexture(
-                        (int)entry.Texture.Width,
-                        (int)entry.Texture.Height,
-                        entry.Texture.Palette.Colors
-                            .Select(c => new SKColor(c.R, c.G, c.B, (byte)(c.A * 2)))
-                            .ToArray(),
-                        entry.Texture.Pixels)
-                ).ToList();
         }
     }
 }

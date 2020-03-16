@@ -17,24 +17,28 @@
  */
 
 using NuXtractor.Textures;
+using SkiaSharp;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NuXtractor.Formats
 {
-    public partial class NupV2 : ITextureContainer<DDSTexture>
+    public partial class GscPs2 : ITextureContainer<IndexedTexture>
     {
-        List<Texture> ITextureContainer<DDSTexture>.GetTextures()
+        List<Texture> ITextureContainer<IndexedTexture>.GetTextures()
         {
             var section = Sections.Single(s => s.Type == "TST0");
             var textures = section.Data as TextureIndex;
-            return textures.Data
-                .Select<TextureData, Texture>(
-                    tex => new DDSTexture(
-                        (int)tex.Width,
-                        (int)tex.Height,
-                        tex.Data)
-                    ).ToList();
+            return textures.Entries
+                .Select<TextureEntry, Texture>(
+                    entry => new IndexedTexture(
+                        entry.Texture.Width,
+                        entry.Texture.Height,
+                        entry.Texture.Palette.Colors
+                            .Select(c => new SKColor(c.R, c.G, c.B, (byte)(c.A * 2)))
+                            .ToArray(),
+                        entry.Texture.Pixels.Data)
+                ).ToList();
         }
     }
 }
