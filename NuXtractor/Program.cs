@@ -28,6 +28,7 @@ namespace NuXtractor
 {
     enum FileFormat
     {
+        GSC,
         NUPv1,
         NUPv2
     }
@@ -35,7 +36,8 @@ namespace NuXtractor
     enum ExtractionMode
     {
         DDS,
-        DXT1
+        DXT1,
+        TTG
     }
 
     enum OutputImportance
@@ -100,6 +102,9 @@ namespace NuXtractor
                 ITextureContainer container = null;
                 switch (options.Format)
                 {
+                    case FileFormat.GSC:
+                        container = Gsc.FromFile(options.InputFile);
+                        break;
                     case FileFormat.NUPv1:
                         container = NupV1.FromFile(options.InputFile);
                         break;
@@ -143,6 +148,24 @@ namespace NuXtractor
                                 {
                                     WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
                                 }
+                            }
+                            break;
+                        case ExtractionMode.TTG:
+                            try
+                            {
+                                WriteLine($"Found texture #{i}; Converting to PNG...");
+
+                                string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
+                                using (var bitmap = (textures[i] as IndexedTexture).ToBitmap())
+                                using (var outputStream = new SKFileWStream(outputPath))
+                                {
+                                    WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
+                                    SKPixmap.Encode(outputStream, bitmap, SKEncodedImageFormat.Png, 100);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
                             }
                             break;
                     }

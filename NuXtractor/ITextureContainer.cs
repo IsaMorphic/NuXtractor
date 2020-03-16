@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -18,6 +19,7 @@ namespace NuXtractor
             Data = data;
         }
     }
+
     public interface ITextureContainer
     {
         List<Texture> GetTextures();

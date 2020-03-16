@@ -7,18 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Formats\NupV1.cs" />
-    <Compile Include="Formats\NupV2.cs" />
+    <None Remove="Kaitai\*.ksy" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="gen\Gsc.cs" />
     <Compile Include="gen\NupV1.cs" />
     <Compile Include="gen\NupV2.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="*.ksy" />
+    <Compile Include="DXTConvert.cs" />
+    <Compile Include="ITextureContainer.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Formats\NupV1.cs" />
+    <Compile Include="Formats\NupV2.cs" />
+    <Compile Include="Formats\Gsc.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +32,6 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="kaitai-struct-compiler *.ksy -t csharp --dotnet-namespace NuXtractor.Formats -d gen" />
+    <Exec Command="kaitai-struct-compiler Kaitai\*.ksy -t csharp --dotnet-namespace NuXtractor.Formats -d gen" />
   </Target>
 </Project>
