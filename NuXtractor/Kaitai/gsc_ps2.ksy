@@ -73,6 +73,10 @@ types:
         type: texture_data
         size: data_length
   texture_data:
+    instances:
+      raw:
+        pos: 0
+        size-eos: true
     seq:
       - id: width
         type: u2

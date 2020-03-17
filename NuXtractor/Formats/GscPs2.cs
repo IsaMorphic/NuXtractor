@@ -18,6 +18,7 @@
 
 using NuXtractor.Textures;
 using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -34,8 +35,9 @@ namespace NuXtractor.Formats
                     entry => new IndexedTexture(
                         entry.Texture.Width,
                         entry.Texture.Height,
+                        entry.Texture.Raw,
                         entry.Texture.Palette.Colors
-                            .Select(c => new SKColor(c.R, c.G, c.B, (byte)(c.A * 2)))
+                            .Select(c => new SKColor(c.R, c.G, c.B, (byte)(c.A * 2 + 1)))
                             .ToArray(),
                         entry.Texture.Pixels.Data)
                 ).ToList();
