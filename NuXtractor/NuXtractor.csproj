@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -33,10 +33,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\KaitaiStruct\kaitai_struct_runtime_csharp.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="..\..\..\..\Lego Star Wars the Video Game %2528PC%2529\Custom Tools\NuXtractor\NuXtractor\NewFolder\" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
