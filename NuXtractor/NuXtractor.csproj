@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,19 +11,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Textures\DDSTexture.cs" />
-    <Compile Include="Textures\DXT1Texture.cs" />
+    <Compile Include="gen\CscGc.cs" />
     <Compile Include="gen\GscPs2.cs" />
     <Compile Include="gen\NupV1.cs" />
     <Compile Include="gen\NupV2.cs" />
-    <Compile Include="Utilities\DXTConvert.cs" />
-    <Compile Include="Textures\IndexedTexture.cs" />
-    <Compile Include="Textures\TextureContainer.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Formats\CscGc.cs" />
+    <Compile Include="Formats\GscPs2.cs" />
     <Compile Include="Formats\NupV1.cs" />
     <Compile Include="Formats\NupV2.cs" />
-    <Compile Include="Formats\GscPs2.cs" />
+    <Compile Include="Textures\DDSTexture.cs" />
+    <Compile Include="Textures\GCTexture.cs" />
+    <Compile Include="Textures\DXT1Texture.cs" />
+    <Compile Include="Textures\PNTTexture.cs" />
     <Compile Include="Textures\Texture.cs" />
+    <Compile Include="Textures\TextureContainer.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +35,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\KaitaiStruct\kaitai_struct_runtime_csharp.csproj" />
+    <ProjectReference Include="..\Rainbow\Rainbow.ImgLib\Rainbow.ImgLib.csproj" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

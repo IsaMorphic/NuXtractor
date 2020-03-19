@@ -17,30 +17,25 @@
  */
 
 using NuXtractor.Textures;
-using SkiaSharp;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NuXtractor.Formats
 {
-    public partial class GscPs2 : ITextureContainer<PNTTexture>
+    public partial class CscGc : ITextureContainer<GCTexture>
     {
-        List<Texture> ITextureContainer<PNTTexture>.GetTextures()
+        List<Texture> ITextureContainer<GCTexture>.GetTextures()
         {
-            var section = Sections.Single(s => s.Type == "TST0");
+            var section = Sections.Single(s => s.Type == "0TST");
             var textures = section.Data as TextureIndex;
-            return textures.Entries
-                .Select<TextureEntry, Texture>(
-                    entry => new PNTTexture(
-                        entry.Texture.Width,
-                        entry.Texture.Height,
-                        entry.Texture.Raw,
-                        entry.Texture.Palette.Colors
-                            .Select(c => new SKColor(c.R, c.G, c.B, (byte)(c.A * 2 + 1)))
-                            .ToArray(),
-                        entry.Texture.Pixels.Data)
-                ).ToList();
+            return textures.Data
+                .Select<TextureData, Texture>(
+                    tex => new GCTexture(
+                        tex.Width, 
+                        tex.Height, 
+                        tex.Data,
+                        tex.Type)
+                    ).ToList();
         }
     }
 }

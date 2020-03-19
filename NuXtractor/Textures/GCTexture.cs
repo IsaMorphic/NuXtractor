@@ -20,24 +20,22 @@ using Rainbow.ImgLib.Common;
 using Rainbow.ImgLib.Encoding;
 using Rainbow.ImgLib.Encoding.Implementation;
 using SkiaSharp;
+using System;
 
 namespace NuXtractor.Textures
 {
-    public class DXT1Texture : Texture
+    public class GCTexture : Texture
     {
-        public DXT1Texture(int width, int height, byte[] data) : base(width, height, data)
+        private ushort Type { get; }
+
+        public GCTexture(int width, int height, byte[] data, ushort type) : base(width, height, data)
         {
+            Type = type;
         }
 
         public override SKBitmap ToBitmap()
         {
-            return new ImageDecoderDirectColor(
-                Data, Width, Height,
-                new ColorCodecDXT1(
-                    ByteOrder.LittleEndian, 
-                    Width, Height
-                    )
-                ).DecodeImage();
+            throw new NotImplementedException("Gamecube textures cannot be converted. Use Dump mode instead.");
         }
     }
 }

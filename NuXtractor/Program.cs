@@ -28,6 +28,7 @@ namespace NuXtractor
 {
     enum FileFormat
     {
+        CSCgc,
         GSCps2,
         NUPv1,
         NUPv2
@@ -37,7 +38,8 @@ namespace NuXtractor
     {
         DDS,
         DXT1,
-        IDX,
+        GC,
+        PNT,
     }
 
     enum ExtractionMode
@@ -111,6 +113,9 @@ namespace NuXtractor
             {
                 switch (options.FileFormat)
                 {
+                    case FileFormat.CSCgc:
+                        container = CscGc.FromFile(options.InputFile);
+                        break;
                     case FileFormat.GSCps2:
                         container = GscPs2.FromFile(options.InputFile);
                         break;
@@ -140,8 +145,11 @@ namespace NuXtractor
                     case TextureFormat.DXT1:
                         textures = (container as ITextureContainer<DXT1Texture>).GetTextures();
                         break;
-                    case TextureFormat.IDX:
-                        textures = (container as ITextureContainer<IndexedTexture>).GetTextures();
+                    case TextureFormat.GC:
+                        textures = (container as ITextureContainer<GCTexture>).GetTextures();
+                        break;
+                    case TextureFormat.PNT:
+                        textures = (container as ITextureContainer<PNTTexture>).GetTextures();
                         break;
                 }
             }

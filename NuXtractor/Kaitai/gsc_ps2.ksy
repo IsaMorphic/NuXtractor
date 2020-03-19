@@ -99,11 +99,17 @@ types:
         type: u4
       - id: pixels
         type: texture_pixels
-        size: pixels_length - 4
+        size: pixels_length + 8
+  texture_pixels:
+    seq:
+      - id: unk005
+        size: 0xBC
+      - id: data
+        size: '_parent.width * _parent.height / ((~_parent.flag & 1) + 1)'
   texture_palette:
     seq:
-      - id: garbage
-        type: texture_garbage
+      - id: unk004
+        size: 0x6C
       - id: colors
         type: color
         repeat: expr
@@ -118,19 +124,3 @@ types:
         type: u1
       - id: a
         type: u1
-  texture_pixels:
-    seq:
-      - id: garbage
-        type: texture_garbage
-      - id: data
-        size: '_parent.flag & 1 == 1 ? _parent.width * _parent.height : _parent.width * _parent.height / 2'
-  texture_garbage:
-    seq:
-      - id: unk004
-        type: u4
-        repeat: until
-        repeat-until: _ == 134217728
-      - id: unk005
-        type: u4
-        repeat: expr
-        repeat-expr: 2

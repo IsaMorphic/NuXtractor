@@ -16,27 +16,34 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using Rainbow.ImgLib.Common;
 using Rainbow.ImgLib.Encoding;
-using Rainbow.ImgLib.Encoding.Implementation;
+using Rainbow.ImgLib.Filters;
 using SkiaSharp;
+using System;
 
 namespace NuXtractor.Textures
 {
-    public class DXT1Texture : Texture
+    public class PNTTexture : Texture
     {
-        public DXT1Texture(int width, int height, byte[] data) : base(width, height, data)
+        public int BitDepth { get; }
+        public SKColor[] Colors { get; }
+
+        public byte[] Pixels { get; }
+
+        public PNTTexture(int width, int height, byte[] data, SKColor[] colors, byte[] pixels) : base(width, height, data)
         {
+            Colors = colors;
+            BitDepth = (int)Math.Log2(Colors.Length);
+
+            Pixels = pixels;
         }
 
         public override SKBitmap ToBitmap()
         {
-            return new ImageDecoderDirectColor(
-                Data, Width, Height,
-                new ColorCodecDXT1(
-                    ByteOrder.LittleEndian, 
-                    Width, Height
-                    )
+            return new ImageDecoderIndexed(
+                Pixels, Width, Height, 
+                IndexCodec.FromBitPerPixel(BitDepth), Colors, 
+                null, new TIM2PaletteFilter(BitDepth)
                 ).DecodeImage();
         }
     }
