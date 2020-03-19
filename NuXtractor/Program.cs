@@ -38,7 +38,7 @@ namespace NuXtractor
     {
         DDS,
         DXT1,
-        GC,
+        CTX,
         PNT,
     }
 
@@ -145,8 +145,8 @@ namespace NuXtractor
                     case TextureFormat.DXT1:
                         textures = (container as ITextureContainer<DXT1Texture>).GetTextures();
                         break;
-                    case TextureFormat.GC:
-                        textures = (container as ITextureContainer<GCTexture>).GetTextures();
+                    case TextureFormat.CTX:
+                        textures = (container as ITextureContainer<CTXTexture>).GetTextures();
                         break;
                     case TextureFormat.PNT:
                         textures = (container as ITextureContainer<PNTTexture>).GetTextures();

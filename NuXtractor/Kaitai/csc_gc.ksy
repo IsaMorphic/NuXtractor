@@ -42,11 +42,11 @@ types:
         repeat: expr
         repeat-expr: header.num_entries
       - id: padding
-        size: 4
+        size: '((header.num_entries * 60 + 20) & -32) - (header.num_entries * 60) + 4'
       - id: data
         type: texture_data(_index)
         repeat: expr
-        repeat-expr: entries.size - 1
+        repeat-expr: entries.size
   texture_header:
     seq:
       - id: num_entries
@@ -63,7 +63,7 @@ types:
           type: u2
         - id: type
           type: u2
-        - id: unk004
+        - id: num_mipmaps
           type: u2
         - id: offset
           type: u4
@@ -74,8 +74,13 @@ types:
       - id: index
         type: s4
     seq:
-      - id: data
-        size: '_parent.entries[index+1].offset > _parent.entries[index].offset ? _parent.entries[index+1].offset - _parent.entries[index].offset : 0'
+      - id: levels
+        size: '(width * height >> (_index * 2)) / (type == 9 ? 1 : 2)'
+        repeat: expr
+        repeat-expr: _parent.entries[index].num_mipmaps
+      - id: palette
+        size: '(type == 8 ? 16 : 256) * 2'
+        if: 'type < 0x0E'
     instances:
       width:
         value: _parent.entries[index].width

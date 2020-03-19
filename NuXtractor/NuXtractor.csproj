@@ -20,7 +20,7 @@
     <Compile Include="Formats\NupV1.cs" />
     <Compile Include="Formats\NupV2.cs" />
     <Compile Include="Textures\DDSTexture.cs" />
-    <Compile Include="Textures\GCTexture.cs" />
+    <Compile Include="Textures\CTXTexture.cs" />
     <Compile Include="Textures\DXT1Texture.cs" />
     <Compile Include="Textures\PNTTexture.cs" />
     <Compile Include="Textures\Texture.cs" />

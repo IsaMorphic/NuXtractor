@@ -22,18 +22,19 @@ using System.Linq;
 
 namespace NuXtractor.Formats
 {
-    public partial class CscGc : ITextureContainer<GCTexture>
+    public partial class CscGc : ITextureContainer<CTXTexture>
     {
-        List<Texture> ITextureContainer<GCTexture>.GetTextures()
+        List<Texture> ITextureContainer<CTXTexture>.GetTextures()
         {
             var section = Sections.Single(s => s.Type == "0TST");
             var textures = section.Data as TextureIndex;
             return textures.Data
                 .Select<TextureData, Texture>(
-                    tex => new GCTexture(
+                    tex => new CTXTexture(
                         tex.Width, 
-                        tex.Height, 
-                        tex.Data,
+                        tex.Height,
+                        tex.Palette,
+                        tex.Levels.First(),
                         tex.Type)
                     ).ToList();
         }
