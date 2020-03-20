@@ -42,7 +42,7 @@ types:
         repeat: expr
         repeat-expr: header.num_entries
       - id: padding
-        size: '((header.num_entries * 60 + 20) & -32) - (header.num_entries * 60) + 4'
+        size: 'entries.first.offset - _io.pos + 16'
       - id: data
         type: texture_data(_index)
         repeat: expr
@@ -78,6 +78,7 @@ types:
         size: '(width * height >> (_index * 2)) / (type == 9 ? 1 : 2)'
         repeat: expr
         repeat-expr: _parent.entries[index].num_mipmaps
+        if: '_parent.entries[index].offset != 0'
       - id: palette
         size: '(type == 8 ? 16 : 256) * 2'
         if: 'type < 0x0E'

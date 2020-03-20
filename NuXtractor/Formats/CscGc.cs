@@ -29,6 +29,7 @@ namespace NuXtractor.Formats
             var section = Sections.Single(s => s.Type == "0TST");
             var textures = section.Data as TextureIndex;
             return textures.Data
+                .Where(tex => tex.Levels != null)
                 .Select<TextureData, Texture>(
                     tex => new CTXTexture(
                         tex.Width, 
