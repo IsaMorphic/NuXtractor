@@ -101,6 +101,5 @@ types:
         type: 
           switch-on: type
           cases:
-            '"0TST"': texture_index
-        size: length - 8
-
+             '"0TST"': texture_index
+        size: "type == 'NUS:' ? 120 : length - 8"

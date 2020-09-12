@@ -341,3 +341,5 @@ healthchecksdb
 
 # Generated files
 gen/
+/TestData
+/Binaries
