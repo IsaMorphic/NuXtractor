@@ -11,10 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Formats\HgpV1.cs" />
     <Compile Include="gen\CscGc.cs" />
     <Compile Include="gen\GscPs2.cs" />
     <Compile Include="gen\NupV1.cs" />
     <Compile Include="gen\NupV2.cs" />
+    <Compile Include="gen\HgpV1.cs" />
     <Compile Include="Formats\CscGc.cs" />
     <Compile Include="Formats\GscPs2.cs" />
     <Compile Include="Formats\NupV1.cs" />

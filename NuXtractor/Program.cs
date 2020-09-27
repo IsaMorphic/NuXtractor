@@ -31,7 +31,8 @@ namespace NuXtractor
         CSCgc,
         GSCps2,
         NUPv1,
-        NUPv2
+        NUPv2,
+        HGPv1
     }
 
     enum TextureFormat
@@ -61,10 +62,10 @@ namespace NuXtractor
         [Option('i', "input-file", Required = true, HelpText = "Path to the input file.")]
         public string InputFile { get; set; }
 
-        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be GSC, NUPv1, NUPv2")]
+        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be CSCgc, GSCps2, NUPv1, NUPv2 or HGPv1")]
         public FileFormat FileFormat { get; set; }
 
-        [Option('t', "texture-format", Required = true, HelpText = "The format of the textures contained in the input file.  Can be DDS, DXT1, or IDX")]
+        [Option('t', "texture-format", Required = true, HelpText = "The format of the textures contained in the input file.  Can be DDS, DXT1, CTX, or PNT")]
         public TextureFormat TextureFormat { get; set; }
 
         [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be either DUMP or CONV.")]
@@ -124,6 +125,9 @@ namespace NuXtractor
                         break;
                     case FileFormat.NUPv2:
                         container = NupV2.FromFile(options.InputFile);
+                        break;
+                    case FileFormat.HGPv1:
+                        container = HgpV1.FromFile(options.InputFile);
                         break;
                 }
             }
