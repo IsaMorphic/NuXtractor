@@ -20,8 +20,8 @@ using System.Collections.Generic;
 
 namespace NuXtractor.Textures
 {
-    public interface ITextureContainer<T> where T : ITexture
+    public interface ITextureContainer<T> where T : Texture
     {
-        List<ITexture> GetTextures();
+        List<Texture> GetTextures();
     }
 }

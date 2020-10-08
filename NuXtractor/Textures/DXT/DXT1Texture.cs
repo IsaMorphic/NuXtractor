@@ -29,29 +29,15 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NuXtractor.Textures
+namespace NuXtractor.Textures.DXT
 {
-    public class DXT1Texture : IDXTTexture
+    public class DXT1Texture : DXTTexture
     {
-        public int Width { get; }
-        public int Height { get; }
-
-        public Stream Stream { get; }
-
-        public Endianness Endianness { get; }
-
         public ISerializer<ushort> Words { get; }
         public PixelBlender<RgbaVector> Pixels { get; }
 
-        public DXT1Texture(int width, int height, Stream stream, Endianness endianness)
+        public DXT1Texture(int width, int height, Endianness endianness, Stream stream) : base(width, height, endianness, stream)
         {
-            Width = width;
-            Height = height;
-
-            Stream = stream;
-
-            Endianness = endianness;
-
             Words = new UInt16Serializer(Endianness);
 
             Pixels = PixelOperations<RgbaVector>.Instance
@@ -107,7 +93,7 @@ namespace NuXtractor.Textures
                 .ToArray();
         }
 
-        public async Task<Image<RgbaVector>> ReadImageAsync()
+        public override async Task<Image<RgbaVector>> ReadImageAsync()
         {
             Stream.Seek(0, SeekOrigin.Begin);
 
@@ -139,7 +125,7 @@ namespace NuXtractor.Textures
 
         public RgbaVector[] CalcTilePalette(RgbaVector[] tile)
         {
-            var filtered = tile.Where(c => c.A > 0.5f);
+            var filtered = tile.Where(c => c.A >= 0.5f);
 
             float[] reds = filtered.Select(c => c.R).ToArray();
             float[] greens = filtered.Select(c => c.G).ToArray();
@@ -201,25 +187,42 @@ namespace NuXtractor.Textures
 
             var loColor = new RgbaVector(red.lo, green.lo, blue.lo);
             var hiColor = new RgbaVector(red.hi, green.hi, blue.hi);
-            var midColor = Pixels.Blend(loColor, hiColor, 0.5f);
 
-            if (ConvertColorToBits(loColor) > ConvertColorToBits(hiColor))
+            if (tile.Any(c => c.A < 0.5f))
             {
-                var temp = loColor;
-                loColor = hiColor;
-                hiColor = temp;
-            }
+                if (ConvertColorToBits(loColor) > ConvertColorToBits(hiColor))
+                {
+                    var temp = loColor;
+                    loColor = hiColor;
+                    hiColor = temp;
+                }
 
-            return new RgbaVector[] { loColor, hiColor, midColor };
+                var midColor = Pixels.Blend(loColor, hiColor, 0.5f);
+                return new RgbaVector[] { loColor, hiColor, midColor };
+            }
+            else
+            {
+                if (ConvertColorToBits(loColor) <= ConvertColorToBits(hiColor))
+                {
+                    var temp = loColor;
+                    loColor = hiColor;
+                    hiColor = temp;
+                }
+
+                var midColor1 = Pixels.Blend(loColor, hiColor, 1.0f / 3.0f);
+                var midColor2 = Pixels.Blend(hiColor, loColor, 1.0f / 3.0f);
+
+                return new RgbaVector[] { loColor, hiColor, midColor1, midColor2 };
+            }
         }
 
         public int[] CalcTileIndicies(RgbaVector[] palette, RgbaVector[] tile)
         {
             return tile
                 .Select(c =>
-                    c.A > 0.5f ?
+                    c.A >= 0.5f ?
                    palette.Select(
-                        (p, i) => 
+                        (p, i) =>
                             (sc: (Math.Abs(c.R - p.R) + Math.Abs(c.G - p.G) + Math.Abs(c.B - p.B)) / 3, i)
                             )
                     .OrderBy(x => x.sc).First().i : 3)
@@ -249,7 +252,7 @@ namespace NuXtractor.Textures
             await Stream.WriteAsync(buffer, 0, buffer.Length);
         }
 
-        public async Task WriteImageAsync(Image<RgbaVector> image)
+        public override async Task WriteImageAsync(Image<RgbaVector> image)
         {
             Stream.Seek(0, SeekOrigin.Begin);
 
@@ -266,32 +269,5 @@ namespace NuXtractor.Textures
                 }
             }
         }
-
-        public ValueTask DisposeAsync()
-        {
-            return Stream.DisposeAsync();
-        }
-
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    Stream.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-        #endregion
     }
 }

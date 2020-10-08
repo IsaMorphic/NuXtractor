@@ -24,14 +24,54 @@ using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
-    public interface ITexture : IDisposable, IAsyncDisposable
+    public abstract class Texture : IDisposable, IAsyncDisposable
     {
-        int Width { get; }
-        int Height { get; }
+        public int Width { get; }
+        public int Height { get; }
 
-        Stream Stream { get; }
+        protected Stream Stream { get; }
 
-        Task<Image<RgbaVector>> ReadImageAsync();
-        Task WriteImageAsync(Image<RgbaVector> pixels);
+        public Texture(int width, int height, Stream stream)
+        {
+            Width = width;
+            Height = height;
+
+            Stream = stream;
+        }
+
+        public abstract Task<Image<RgbaVector>> ReadImageAsync();
+        public abstract Task WriteImageAsync(Image<RgbaVector> pixels);
+
+        public Task CopyToStreamAsync(Stream stream)
+        {
+            return Stream.CopyToAsync(stream);
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Stream.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return Stream.DisposeAsync();
+        }
+        #endregion
     }
 }

@@ -17,23 +17,25 @@
  */
 
 using MightyStruct.Serializers;
+
 using NuXtractor.Textures;
+using NuXtractor.Textures.DXT;
 
 using System.Collections.Generic;
 
 namespace NuXtractor.Formats
 {
-    public partial class NUXv1 : FormattedFile, ITextureContainer<IDXTTexture>
+    public partial class NUXv1 : FormattedFile, ITextureContainer<DXTTexture>
     {
         public NUXv1(string path) : base("nux_v1", path)
         {
         }
 
-        List<ITexture> ITextureContainer<IDXTTexture>.GetTextures()
+        List<Texture> ITextureContainer<DXTTexture>.GetTextures()
         {
             var index = data.texture_index;
 
-            List<ITexture> textures = new List<ITexture>();
+            List<Texture> textures = new List<Texture>();
 
             for (int i = 0; i < index.entries.size; i++)
             {
@@ -44,7 +46,7 @@ namespace NuXtractor.Formats
                 var stream = index.textures[i];
 
                 if (type == 0x0C)
-                    textures.Add(new DXT1Texture(width, height, stream, Endianness.LittleEndian));
+                    textures.Add(new DXT1Texture(width, height, Endianness.LittleEndian, stream));
                 else
                     textures.Add(new UnknownTexture(width, height, stream));
             }

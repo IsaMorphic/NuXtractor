@@ -19,6 +19,7 @@
 using CommandLine;
 using NuXtractor.Formats;
 using NuXtractor.Textures;
+using NuXtractor.Textures.DXT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -129,14 +130,14 @@ namespace NuXtractor
                 return;
             }
 
-            List<ITexture> textures = null;
+            List<Texture> textures = null;
             try
             {
 
                 switch (options.TextureFormat)
                 {
                     case TextureFormat.DXT:
-                        textures = (file as ITextureContainer<IDXTTexture>).GetTextures();
+                        textures = (file as ITextureContainer<DXTTexture>).GetTextures();
                         break;
                 }
             }
@@ -162,7 +163,7 @@ namespace NuXtractor
 
                             using (var dumpStream = File.Create(dumpPath))
                             {
-                                await texture.Stream.CopyToAsync(dumpStream);
+                                await texture.CopyToStreamAsync(dumpStream);
                             }
                             break;
                         case ExtractionMode.CONV:
@@ -188,7 +189,7 @@ namespace NuXtractor
                                 string repPath = Path.Combine(outputDir, $"texture_{i}.png");
                                 if (File.Exists(repPath))
                                 {
-                                    WriteLine($"Found replacement file \"texture_{i}.png\"; converting & injecting texture...");
+                                    WriteLine($"Found replacement file {repPath}; Converting & injecting texture...");
 
                                     var image = await Image.LoadAsync<RgbaVector>(repPath);
                                     await texture.WriteImageAsync(image);
