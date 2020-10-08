@@ -16,24 +16,22 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using SkiaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
-    public abstract class Texture
+    public interface ITexture : IDisposable, IAsyncDisposable
     {
-        public int Width { get; }
-        public int Height { get; }
+        int Width { get; }
+        int Height { get; }
 
-        public byte[] Data { get; }
+        Stream Stream { get; }
 
-        public Texture(int width, int height, byte[] data)
-        {
-            Width = width;
-            Height = height;
-            Data = data;
-        }
-
-        public abstract SKBitmap ToBitmap();
+        Task<Image<RgbaVector>> ReadImageAsync();
+        Task WriteImageAsync(Image<RgbaVector> pixels);
     }
 }

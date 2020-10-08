@@ -19,10 +19,12 @@
 using CommandLine;
 using NuXtractor.Formats;
 using NuXtractor.Textures;
-using SkiaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace NuXtractor
 {
@@ -30,7 +32,7 @@ namespace NuXtractor
     {
         CSCgc,
         GSCps2,
-        NUPv1,
+        NUXv1,
         NUPv2,
         HGPv1
     }
@@ -38,7 +40,7 @@ namespace NuXtractor
     enum TextureFormat
     {
         DDS,
-        DXT1,
+        DXT,
         CTX,
         PNT,
     }
@@ -46,7 +48,8 @@ namespace NuXtractor
     enum ExtractionMode
     {
         DUMP,
-        CONV
+        CONV,
+        INJ
     }
 
     enum OutputImportance
@@ -74,10 +77,10 @@ namespace NuXtractor
 
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(RunOptions);
+            await Parser.Default.ParseArguments<Options>(args)
+                .MapResult(opts => RunAsync(opts), null);
         }
 
         static void WriteLine(string str = "", OutputImportance type = OutputImportance.Important)
@@ -101,35 +104,24 @@ namespace NuXtractor
             Console.ResetColor();
         }
 
-        static void RunOptions(Options options)
+        static async Task RunAsync(Options options)
         {
             if (!File.Exists(options.InputFile))
             {
-                WriteLine("The specified input file does not exist. Check any paths or filenames to make sure they are correct.", OutputImportance.Error);
+                WriteLine("Error: The specified input file does not exist. Check any paths or filenames to make sure they are correct.", OutputImportance.Error);
                 return;
             }
 
-            object container = null;
+            FormattedFile file = null;
             try
             {
                 switch (options.FileFormat)
                 {
-                    case FileFormat.CSCgc:
-                        container = CscGc.FromFile(options.InputFile);
-                        break;
-                    case FileFormat.GSCps2:
-                        container = GscPs2.FromFile(options.InputFile);
-                        break;
-                    case FileFormat.NUPv1:
-                        container = NupV1.FromFile(options.InputFile);
-                        break;
-                    case FileFormat.NUPv2:
-                        container = NupV2.FromFile(options.InputFile);
-                        break;
-                    case FileFormat.HGPv1:
-                        container = HgpV1.FromFile(options.InputFile);
+                    case FileFormat.NUXv1:
+                        file = new NUXv1(options.InputFile);
                         break;
                 }
+                await file.LoadAsync();
             }
             catch (Exception)
             {
@@ -137,23 +129,14 @@ namespace NuXtractor
                 return;
             }
 
-            List<Texture> textures = null;
+            List<ITexture> textures = null;
             try
             {
 
                 switch (options.TextureFormat)
                 {
-                    case TextureFormat.DDS:
-                        textures = (container as ITextureContainer<DDSTexture>).GetTextures();
-                        break;
-                    case TextureFormat.DXT1:
-                        textures = (container as ITextureContainer<DXT1Texture>).GetTextures();
-                        break;
-                    case TextureFormat.CTX:
-                        textures = (container as ITextureContainer<CTXTexture>).GetTextures();
-                        break;
-                    case TextureFormat.PNT:
-                        textures = (container as ITextureContainer<PNTTexture>).GetTextures();
+                    case TextureFormat.DXT:
+                        textures = (file as ITextureContainer<IDXTTexture>).GetTextures();
                         break;
                 }
             }
@@ -169,31 +152,56 @@ namespace NuXtractor
             // Start reading textures one by one
             for (int i = 0; i < textures.Count; i++)
             {
-                switch (options.Mode)
+                using (var texture = textures[i])
                 {
-                    case ExtractionMode.DUMP:
-                        string dumpPath = Path.Combine(outputDir, $"texture_{i}.{options.TextureFormat}");
-                        WriteLine($"Found texture #{i}; Dumping to file: {dumpPath}");
-                        File.WriteAllBytes(dumpPath, textures[i].Data);
-                        break;
-                    case ExtractionMode.CONV:
-                        try
-                        {
-                            WriteLine($"Found texture #{i}; Converting to PNG...");
+                    switch (options.Mode)
+                    {
+                        case ExtractionMode.DUMP:
+                            string dumpPath = Path.Combine(outputDir, $"texture_{i}.{options.TextureFormat}");
+                            WriteLine($"Found texture #{i}; Dumping to file: {dumpPath}");
 
-                            string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
-                            using (var bitmap = textures[i].ToBitmap())
-                            using (var outputStream = new SKFileWStream(outputPath))
+                            using (var dumpStream = File.Create(dumpPath))
                             {
-                                WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
-                                SKPixmap.Encode(outputStream, bitmap, SKEncodedImageFormat.Png, 100);
+                                await texture.Stream.CopyToAsync(dumpStream);
                             }
-                        }
-                        catch (Exception)
-                        {
-                            WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
-                        }
-                        break;
+                            break;
+                        case ExtractionMode.CONV:
+                            try
+                            {
+                                WriteLine($"Found texture #{i}; Converting to PNG...");
+
+                                var image = await texture.ReadImageAsync();
+
+                                string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
+                                WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
+
+                                await image.SaveAsPngAsync(outputPath);
+                            }
+                            catch (Exception)
+                            {
+                                WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
+                            }
+                            break;
+                        case ExtractionMode.INJ:
+                            try
+                            {
+                                string repPath = Path.Combine(outputDir, $"texture_{i}.png");
+                                if (File.Exists(repPath))
+                                {
+                                    WriteLine($"Found replacement file \"texture_{i}.png\"; converting & injecting texture...");
+
+                                    var image = await Image.LoadAsync<RgbaVector>(repPath);
+                                    await texture.WriteImageAsync(image);
+
+                                    WriteLine($"Finished injecting texture #{i}", OutputImportance.Verbose);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                WriteLine($"Failed to inject texture #{i}", OutputImportance.Error);
+                            }
+                            break;
+                    }
                 }
             }
 

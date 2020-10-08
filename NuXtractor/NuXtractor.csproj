@@ -3,44 +3,20 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Kaitai\*.ksy" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Formats\HgpV1.cs" />
-    <Compile Include="gen\CscGc.cs" />
-    <Compile Include="gen\GscPs2.cs" />
-    <Compile Include="gen\NupV1.cs" />
-    <Compile Include="gen\NupV2.cs" />
-    <Compile Include="gen\HgpV1.cs" />
-    <Compile Include="Formats\CscGc.cs" />
-    <Compile Include="Formats\GscPs2.cs" />
-    <Compile Include="Formats\NupV1.cs" />
-    <Compile Include="Formats\NupV2.cs" />
-    <Compile Include="Textures\DDSTexture.cs" />
-    <Compile Include="Textures\CTXTexture.cs" />
-    <Compile Include="Textures\DXT1Texture.cs" />
-    <Compile Include="Textures\PNTTexture.cs" />
-    <Compile Include="Textures\Texture.cs" />
-    <Compile Include="Textures\TextureContainer.cs" />
-    <Compile Include="Program.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
-    <PackageReference Include="SkiaSharp" Version="1.68.1.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.1" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\KaitaiStruct\kaitai_struct_runtime_csharp.csproj" />
-    <ProjectReference Include="..\Rainbow\Rainbow.ImgLib\Rainbow.ImgLib.csproj" />
+    <ProjectReference Include="..\MightyStruct\MightyStruct\MightyStruct.csproj" />
   </ItemGroup>
-
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="kaitai-struct-compiler Kaitai\*.ksy -t csharp --dotnet-namespace NuXtractor.Formats -d gen" />
-  </Target>
+  
+  <ItemGroup>
+    <None Update="Mighty\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

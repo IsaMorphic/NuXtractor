@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<type name="nux_v1">
+  <type name="file_header">
+    <attr name="unk000" type="u4le" />
+    <attr name="string_offset" type="u4le" />
+    <attr name="texture_offset" type="u4le" />
+    <attr name="material_offset" type="u4le" />
+    <attr name="vertex_offset" type="u4le" />
+    <attr name="model_offset" type="u4le" />
+    <attr name="object_offset" type="u4le" />
+  </type>
+  <type name="texture_index">
+    <type name="header">
+      <attr name="data_offset" type="u4le" />
+      <attr name="last_offset" type="u4le" />
+      <attr name="num_entries" type="u4le" />
+    </type>
+    <type name="entry">
+      <attr name="width" type="u4le" />
+      <attr name="height" type="u4le" />
+      <attr name="unk003" type="u4le" />
+      <attr name="type" type="u4le" />
+      <attr name="offset" type="u4le" />
+    </type>
+    <attr name="header" type="header" />
+    <attr name="entries" type="entry">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.header.num_entries
+      </repeat-expr>
+    </attr>
+    <attr name="padding">
+      <size>
+        _self.header.data_offset - _self.header.num_entries * 20
+      </size>
+    </attr>
+    <attr name="textures">
+      <size>
+        (_index &lt; _self.entries.size - 1) ? _self.entries[_index + 1].offset - _self.entries[_index].offset : _self.header.last_offset - _self.entries[_index].offset
+      </size>
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.header.num_entries
+      </repeat-expr>
+    </attr>
+  </type>
+  <attr name="main_header" type="file_header" />
+  <attr name="texture_index" type="texture_index">
+    <offset>
+      _self.main_header.texture_offset + 64
+    </offset>
+  </attr>
+</type>

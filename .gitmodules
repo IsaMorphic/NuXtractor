@@ -1,6 +1,3 @@
-[submodule "KaitaiStruct"]
-	path = KaitaiStruct
-	url = https://github.com/kaitai-io/kaitai_struct_csharp_runtime.git
-[submodule "Rainbow"]
-	path = Rainbow
-	url = https://github.com/yodadude2003/Rainbow.git
+[submodule "MightyStruct"]
+	path = MightyStruct
+	url = https://github.com/yodadude2003/MightyStruct

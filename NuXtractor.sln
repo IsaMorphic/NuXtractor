@@ -5,9 +5,9 @@ VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuXtractor", "NuXtractor\NuXtractor.csproj", "{4C154BF2-C60E-4B78-B697-DAD99641EF0E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kaitai_struct_runtime_csharp", "KaitaiStruct\kaitai_struct_runtime_csharp.csproj", "{C028567C-78BE-4765-9312-21419C55AB51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rainbow.ImgLib", "Rainbow\Rainbow.ImgLib\Rainbow.ImgLib.csproj", "{C4117527-926B-4588-BDE3-53EC241E62B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainbow.ImgLib", "Rainbow\Rainbow.ImgLib\Rainbow.ImgLib.csproj", "{C4117527-926B-4588-BDE3-53EC241E62B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MightyStruct", "MightyStruct\MightyStruct\MightyStruct.csproj", "{6DE38633-AD11-44FB-85B7-BA6BDA3D0A53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,14 @@ Global
 		{4C154BF2-C60E-4B78-B697-DAD99641EF0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C154BF2-C60E-4B78-B697-DAD99641EF0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C154BF2-C60E-4B78-B697-DAD99641EF0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C028567C-78BE-4765-9312-21419C55AB51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C028567C-78BE-4765-9312-21419C55AB51}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C028567C-78BE-4765-9312-21419C55AB51}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C028567C-78BE-4765-9312-21419C55AB51}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C4117527-926B-4588-BDE3-53EC241E62B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C4117527-926B-4588-BDE3-53EC241E62B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4117527-926B-4588-BDE3-53EC241E62B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4117527-926B-4588-BDE3-53EC241E62B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DE38633-AD11-44FB-85B7-BA6BDA3D0A53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DE38633-AD11-44FB-85B7-BA6BDA3D0A53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DE38633-AD11-44FB-85B7-BA6BDA3D0A53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DE38633-AD11-44FB-85B7-BA6BDA3D0A53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
