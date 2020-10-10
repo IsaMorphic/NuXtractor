@@ -339,7 +339,7 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-# Generated files
-gen/
+# Custom
 /TestData
 /Binaries
+launchSettings.json

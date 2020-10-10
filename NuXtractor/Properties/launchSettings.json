@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "NuXtractor": {
-      "commandName": "Project",
-      "commandLineArgs": "-i things.nux -f NUXv1 -t DXT -m CONV"
-    }
-  }
-}
