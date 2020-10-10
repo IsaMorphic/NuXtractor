@@ -34,8 +34,8 @@ namespace NuXtractor
         CSCgc,
         GSCps2,
         NUXv1,
-        NUPv2,
-        HGPv1
+        NUXv2,
+        HGXv1
     }
 
     enum TextureFormat
@@ -50,7 +50,8 @@ namespace NuXtractor
     {
         DUMP,
         CONV,
-        INJ
+        INJD,
+        INJC,
     }
 
     enum OutputImportance
@@ -119,7 +120,10 @@ namespace NuXtractor
                 switch (options.FileFormat)
                 {
                     case FileFormat.NUXv1:
-                        file = new NUXv1(options.InputFile);
+                        file = new ContainerV1("nux_v1", options.InputFile);
+                        break;
+                    case FileFormat.HGXv1:
+                        file = new ContainerV1("hgx_v1", options.InputFile);
                         break;
                 }
                 await file.LoadAsync();
@@ -136,7 +140,7 @@ namespace NuXtractor
 
                 switch (options.TextureFormat)
                 {
-                    case TextureFormat.DXT:
+                    case TextureFormat.DXTn:
                         textures = (file as ITextureContainer<DXT1Texture>).GetTextures();
                         break;
                 }
@@ -147,8 +151,8 @@ namespace NuXtractor
                 return;
             }
 
-            string outputDir = options.InputFile + ".textures";
-            Directory.CreateDirectory(outputDir);
+            string dir = options.InputFile + ".textures";
+            Directory.CreateDirectory(dir);
 
             // Start reading textures one by one
             for (int i = 0; i < textures.Count; i++)
@@ -158,12 +162,23 @@ namespace NuXtractor
                     switch (options.Mode)
                     {
                         case ExtractionMode.DUMP:
-                            string dumpPath = Path.Combine(outputDir, $"texture_{i}.{options.TextureFormat}");
-                            WriteLine($"Found texture #{i}; Dumping to file: {dumpPath}");
-
-                            using (var dumpStream = File.Create(dumpPath))
+                            try
                             {
-                                await texture.CopyToStreamAsync(dumpStream);
+                                string dumpPath = Path.Combine(dir, $"texture_{i}.{options.TextureFormat}");
+                                WriteLine($"Found texture #{i}; Dumping to file...");
+
+                                using (var stream = File.Create(dumpPath))
+                                {
+                                    await texture.CopyToStreamAsync(stream);
+                                }
+
+                                WriteLine($"Dumped to {dumpPath} successfully!", OutputImportance.Verbose);
+                            }
+                            catch (Exception)
+                            {
+                                WriteLine("Dump failed!!! This is a bug. Please notify the developers immediately with details about how the issue arose.", OutputImportance.Error);
+                                WriteLine("Create an issue on github: https://www.github.com/yodadude2003/NuXtractor", OutputImportance.Verbose);
+                                WriteLine("Write us an email: info@chosenfewsoftware.com", OutputImportance.Verbose);
                             }
                             break;
                         case ExtractionMode.CONV:
@@ -173,33 +188,56 @@ namespace NuXtractor
 
                                 var image = await texture.ReadImageAsync();
 
-                                string outputPath = Path.Combine(outputDir, $"texture_{i}.png");
-                                WriteLine($"Conversion successful! Writing output to file: {outputPath}", OutputImportance.Verbose);
+                                string convPath = Path.Combine(dir, $"texture_{i}.png");
+                                await image.SaveAsPngAsync(convPath);
 
-                                await image.SaveAsPngAsync(outputPath);
+                                WriteLine($"Conversion successful! Wrote output to file: {convPath}", OutputImportance.Verbose);
                             }
                             catch (Exception)
                             {
-                                WriteLine("Conversion Failed! Moving on to next texture...", OutputImportance.Error);
+                                WriteLine("Conversion failed! Moving on to next texture...", OutputImportance.Error);
                             }
                             break;
-                        case ExtractionMode.INJ:
+                        case ExtractionMode.INJD:
                             try
                             {
-                                string repPath = Path.Combine(outputDir, $"texture_{i}.png");
-                                if (File.Exists(repPath))
+                                string injdPath = Path.Combine(dir, $"texture_{i}.{options.TextureFormat}");
+                                if (File.Exists(injdPath))
                                 {
-                                    WriteLine($"Found replacement file {repPath}; Converting & injecting texture...");
+                                    WriteLine($"Found replacement file {injdPath}; Injecting raw texture data...");
 
-                                    var image = await Image.LoadAsync<RgbaVector>(repPath);
-                                    await texture.WriteImageAsync(image);
+                                    using (var stream = File.OpenRead(injdPath))
+                                    {
+                                        await texture.CopyToStreamAsync(stream);
+                                    }
 
-                                    WriteLine($"Finished injecting texture #{i}", OutputImportance.Verbose);
+                                    WriteLine($"Injected texture #{i} successfully!", OutputImportance.Verbose);
                                 }
                             }
                             catch (Exception)
                             {
-                                WriteLine($"Failed to inject texture #{i}", OutputImportance.Error);
+                                WriteLine("Injection failed!!! This is a bug. Please notify the developers immediately with details about how the issue arose.", OutputImportance.Error);
+                                WriteLine("Create an issue on github: https://www.github.com/yodadude2003/NuXtractor", OutputImportance.Verbose);
+                                WriteLine("Write us an email: info@chosenfewsoftware.com", OutputImportance.Verbose);
+                            }
+                            break;
+                        case ExtractionMode.INJC:
+                            try
+                            {
+                                string injcPath = Path.Combine(dir, $"texture_{i}.png");
+                                if (File.Exists(injcPath))
+                                {
+                                    WriteLine($"Found replacement image {injcPath}; Converting & injecting texture...");
+
+                                    var image = await Image.LoadAsync<RgbaVector>(injcPath);
+                                    await texture.WriteImageAsync(image);
+
+                                    WriteLine($"Injected texture #{i} successfully!", OutputImportance.Verbose);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                WriteLine($"Failed to inject texture #{i}!", OutputImportance.Error);
                             }
                             break;
                     }

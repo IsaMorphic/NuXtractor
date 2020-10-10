@@ -8,7 +8,7 @@ namespace NuXtractor.Textures
 {
     public class UnknownTexture : Texture
     {
-        public UnknownTexture(int width, int height, Stream stream) : base(width, height, stream)
+        public UnknownTexture(int width, int height, int levels, Stream stream) : base(width, height, levels, stream)
         {
         }
 

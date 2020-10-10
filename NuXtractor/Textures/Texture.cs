@@ -29,12 +29,16 @@ namespace NuXtractor.Textures
         public int Width { get; }
         public int Height { get; }
 
+        public int Levels { get; }
+
         protected Stream Stream { get; }
 
-        public Texture(int width, int height, Stream stream)
+        public Texture(int width, int height, int levels, Stream stream)
         {
             Width = width;
             Height = height;
+
+            Levels = levels;
 
             Stream = stream;
         }
@@ -44,7 +48,14 @@ namespace NuXtractor.Textures
 
         public Task CopyToStreamAsync(Stream stream)
         {
+            Stream.Seek(0, SeekOrigin.Begin);
             return Stream.CopyToAsync(stream);
+        }
+
+        public Task CopyFromStreamAsync(Stream stream)
+        {
+            Stream.Seek(0, SeekOrigin.Begin);
+            return stream.CopyToAsync(Stream);
         }
 
         #region IDisposable Support

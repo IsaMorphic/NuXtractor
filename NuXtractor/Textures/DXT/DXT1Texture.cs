@@ -35,10 +35,10 @@ namespace NuXtractor.Textures.DXT
     {
         public Endianness Endianness { get; }
 
-        public ISerializer<ushort> Words { get; }
-        public PixelBlender<RgbaVector> Pixels { get; }
+        protected ISerializer<ushort> Words { get; }
+        protected PixelBlender<RgbaVector> Pixels { get; }
 
-        public DXT1Texture(int width, int height, Endianness endianness, Stream stream) : base(width, height, stream)
+        public DXT1Texture(int width, int height, int levels, Endianness endianness, Stream stream) : base(width, height, levels, stream)
         {
             Endianness = endianness;
 
@@ -108,7 +108,6 @@ namespace NuXtractor.Textures.DXT
             Stream.Seek(0, SeekOrigin.Begin);
 
             var image = new Image<RgbaVector>(Width, Height);
-
             for (int y = 0; y < Height; y += 4)
             {
                 for (int x = 0; x < Width; x += 4)
@@ -260,16 +259,24 @@ namespace NuXtractor.Textures.DXT
         {
             Stream.Seek(0, SeekOrigin.Begin);
 
-            for (int y = 0; y < Height; y += 4)
+            for (int l = 0; l <= Levels; l++)
             {
-                for (int x = 0; x < Width; x += 4)
+                for (int y = 0; y < Height >> l; y += 4)
                 {
-                    var tile = new RgbaVector[16];
-                    for (int i = 0; i < 16; i++)
+                    for (int x = 0; x < Width >> l; x += 4)
                     {
-                        tile[i] = image[x + (3 - (i % 4)), y + (i / 4)];
+                        var tile = new RgbaVector[16];
+                        for (int i = 0; i < 16; i++)
+                        {
+                            int tx = (x + (3 - (i % 4))) << l;
+                            int ty = (y + (i / 4)) << l;
+                            if (tx < Width >> l && ty < Height >> l)
+                            {
+                                tile[i] = image[tx, ty];
+                            }
+                        }
+                        await WriteTileAsync(tile);
                     }
-                    await WriteTileAsync(tile);
                 }
             }
         }

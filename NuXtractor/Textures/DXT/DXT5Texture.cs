@@ -1,7 +1,6 @@
 ﻿using MightyStruct;
 using MightyStruct.Serializers;
 
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 using System;
@@ -15,9 +14,9 @@ namespace NuXtractor.Textures.DXT
 {
     public class DXT5Texture : DXT1Texture
     {
-        public ISerializer<byte> Bytes { get; }
+        private ISerializer<byte> Bytes { get; }
 
-        public DXT5Texture(int width, int height, Endianness endianness, Stream stream) : base(width, height, endianness, stream)
+        public DXT5Texture(int width, int height, int levels, Endianness endianness, Stream stream) : base(width, height, levels, endianness, stream)
         {
             Bytes = new UInt8Serializer();
         }
@@ -93,27 +92,6 @@ namespace NuXtractor.Textures.DXT
             return tile
                 .Select((c, i) => new RgbaVector(c.R, c.G, c.B, alphas[i]))
                 .ToArray();
-        }
-
-        public override async Task<Image<RgbaVector>> ReadImageAsync()
-        {
-            Stream.Seek(0, SeekOrigin.Begin);
-
-            var image = new Image<RgbaVector>(Width, Height);
-
-            for (int y = 0; y < Height; y += 4)
-            {
-                for (int x = 0; x < Width; x += 4)
-                {
-                    var tile = await ReadTileAsync();
-                    for (int i = 0; i < 16; i++)
-                    {
-                        image[x + (3 - (i % 4)), y + (i / 4)] = tile[i];
-                    }
-                }
-            }
-
-            return image;
         }
 
         private float[] CalcAlphaPalette(RgbaVector[] tile)
