@@ -41,7 +41,7 @@ namespace NuXtractor
     enum TextureFormat
     {
         DDS,
-        DXT,
+        DXTn,
         CTX,
         PNT,
     }
@@ -137,7 +137,7 @@ namespace NuXtractor
                 switch (options.TextureFormat)
                 {
                     case TextureFormat.DXT:
-                        textures = (file as ITextureContainer<DXTTexture>).GetTextures();
+                        textures = (file as ITextureContainer<DXT1Texture>).GetTextures();
                         break;
                 }
             }

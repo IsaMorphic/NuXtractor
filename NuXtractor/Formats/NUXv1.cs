@@ -25,13 +25,13 @@ using System.Collections.Generic;
 
 namespace NuXtractor.Formats
 {
-    public partial class NUXv1 : FormattedFile, ITextureContainer<DXTTexture>
+    public partial class NUXv1 : FormattedFile, ITextureContainer<DXT1Texture>
     {
         public NUXv1(string path) : base("nux_v1", path)
         {
         }
 
-        List<Texture> ITextureContainer<DXTTexture>.GetTextures()
+        List<Texture> ITextureContainer<DXT1Texture>.GetTextures()
         {
             var index = data.texture_index;
 
@@ -47,6 +47,8 @@ namespace NuXtractor.Formats
 
                 if (type == 0x0C)
                     textures.Add(new DXT1Texture(width, height, Endianness.LittleEndian, stream));
+                else if (type == 0x0F)
+                    textures.Add(new DXT5Texture(width, height, Endianness.LittleEndian, stream));
                 else
                     textures.Add(new UnknownTexture(width, height, stream));
             }

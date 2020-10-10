@@ -31,20 +31,32 @@ using System.Threading.Tasks;
 
 namespace NuXtractor.Textures.DXT
 {
-    public class DXT1Texture : DXTTexture
+    public class DXT1Texture : Texture
     {
+        public Endianness Endianness { get; }
+
         public ISerializer<ushort> Words { get; }
         public PixelBlender<RgbaVector> Pixels { get; }
 
-        public DXT1Texture(int width, int height, Endianness endianness, Stream stream) : base(width, height, endianness, stream)
+        public DXT1Texture(int width, int height, Endianness endianness, Stream stream) : base(width, height, stream)
         {
-            Words = new UInt16Serializer(Endianness);
+            Endianness = endianness;
 
+            Words = new UInt16Serializer(Endianness);
             Pixels = PixelOperations<RgbaVector>.Instance
                 .GetPixelBlender(new GraphicsOptions());
         }
 
-        private async Task<(RgbaVector color, ushort bits)> ReadColorAsync()
+        protected ushort ConvertColorToBits(RgbaVector color)
+        {
+            int r = (int)(color.R * 31.0f);
+            int g = (int)(color.G * 63.0f);
+            int b = (int)(color.B * 31.0f);
+
+            return (ushort)((r << 11) | (g << 5) | (b));
+        }
+
+        protected async Task<RgbaVector> ReadColorAsync()
         {
             ushort color = await Words.ReadFromStreamAsync(Stream);
 
@@ -52,20 +64,18 @@ namespace NuXtractor.Textures.DXT
             float g = ((color & 0x7E0) >> 5) / 63.0f;
             float b = (color & 0x1F) / 31.0f;
 
-            return (new RgbaVector(r, g, b), color);
+            return new RgbaVector(r, g, b);
         }
 
-        private async Task<RgbaVector[]> ReadPaletteAsync()
+        protected async Task<RgbaVector[]> ReadPaletteAsync()
         {
-            var first = await ReadColorAsync();
-            var last = await ReadColorAsync();
+            var colors = new List<RgbaVector>
+            {
+                await ReadColorAsync(),
+                await ReadColorAsync()
+            };
 
-            var bits0 = first.bits;
-            var bits1 = last.bits;
-
-            var colors = new List<RgbaVector> { first.color, last.color };
-
-            if (bits0 > bits1)
+            if (ConvertColorToBits(colors[0]) > ConvertColorToBits(colors[1]))
             {
                 colors.Add(Pixels.Blend(colors[0], colors[1], 1.0f / 3.0f));
                 colors.Add(Pixels.Blend(colors[1], colors[0], 1.0f / 3.0f));
@@ -79,7 +89,7 @@ namespace NuXtractor.Textures.DXT
             return colors.ToArray();
         }
 
-        private async Task<RgbaVector[]> ReadTileAsync()
+        protected virtual async Task<RgbaVector[]> ReadTileAsync()
         {
             RgbaVector[] colors = await ReadPaletteAsync();
 
@@ -114,18 +124,45 @@ namespace NuXtractor.Textures.DXT
             return image;
         }
 
-        public ushort ConvertColorToBits(RgbaVector color)
+        protected (float lo, float hi) CalcBestExtremes(float[] fValues)
         {
-            int r = (int)(color.R * 31.0f);
-            int g = (int)(color.G * 63.0f);
-            int b = (int)(color.B * 31.0f);
+            if (fValues.Length == 1)
+            {
+                return (fValues[0], fValues[0]);
+            }
+            else if (fValues.Length == 2)
+            {
+                return (fValues[0], fValues[1]);
+            }
 
-            return (ushort)((r << 11) | (g << 5) | (b));
+            float N = fValues.Length;
+
+            float sumX = 0, sumY = 0;
+            float sumXY = 0, sumXSq = 0;
+
+            for (int j = 0; j < fValues.Length; j++)
+            {
+                sumX += j;
+                sumY += fValues[j];
+
+                sumXY += j * fValues[j];
+                sumXSq += j * j;
+            }
+
+
+            // line of best fit: y = mx + b
+            float m = (N * sumXY - sumX * sumY) / (N * sumXSq - sumX * sumX);
+            float b = sumY / N - m * sumX / N;
+
+            float lo = Math.Clamp(b, 0.0f, 1.0f);
+            float hi = Math.Clamp((N - 1) * m + lo, 0.0f, 1.0f);
+
+            return (lo, hi);
         }
 
-        public RgbaVector[] CalcTilePalette(RgbaVector[] tile)
+        private RgbaVector[] CalcTilePalette(RgbaVector[] tile)
         {
-            var filtered = tile.Where(c => c.A >= 0.5f);
+            var filtered = tile.Where(c => c.A > 0.0f);
 
             float[] reds = filtered.Select(c => c.R).ToArray();
             float[] greens = filtered.Select(c => c.G).ToArray();
@@ -145,40 +182,7 @@ namespace NuXtractor.Textures.DXT
                     .OrderBy(n => n)
                     .ToArray();
 
-                if (fValues.Length == 1)
-                {
-                    results[i] = (fValues[0], fValues[0]);
-                    continue;
-                }
-                else if (fValues.Length == 2)
-                {
-                    results[i] = (fValues[0], fValues[1]);
-                    continue;
-                }
-
-                float N = fValues.Length;
-
-                float sumX = 0, sumY = 0;
-                float sumXY = 0, sumXSq = 0;
-
-                for (int j = 0; j < fValues.Length; j++)
-                {
-                    sumX += j;
-                    sumY += fValues[j];
-
-                    sumXY += j * fValues[j];
-                    sumXSq += j * j;
-                }
-
-
-                // line of best fit: y = mx + b
-                float m = (N * sumXY - sumX * sumY) / (N * sumXSq - sumX * sumX);
-                float b = sumY / N - m * sumX / N;
-
-                float lo = Math.Clamp(b, 0.0f, 1.0f);
-                float hi = Math.Clamp((N - 1) * m + lo, 0.0f, 1.0f);
-
-                results[i] = (lo, hi);
+                results[i] = CalcBestExtremes(fValues);
             }
 
             var red = results[0];
@@ -188,7 +192,7 @@ namespace NuXtractor.Textures.DXT
             var loColor = new RgbaVector(red.lo, green.lo, blue.lo);
             var hiColor = new RgbaVector(red.hi, green.hi, blue.hi);
 
-            if (tile.Any(c => c.A < 0.5f))
+            if (tile.Any(c => c.A == 0.0f))
             {
                 if (ConvertColorToBits(loColor) > ConvertColorToBits(hiColor))
                 {
@@ -216,11 +220,11 @@ namespace NuXtractor.Textures.DXT
             }
         }
 
-        public int[] CalcTileIndicies(RgbaVector[] palette, RgbaVector[] tile)
+        private int[] CalcTileIndicies(RgbaVector[] palette, RgbaVector[] tile)
         {
             return tile
                 .Select(c =>
-                    c.A >= 0.5f ?
+                    c.A > 0.0f ?
                    palette.Select(
                         (p, i) =>
                             (sc: (Math.Abs(c.R - p.R) + Math.Abs(c.G - p.G) + Math.Abs(c.B - p.B)) / 3, i)
@@ -229,12 +233,12 @@ namespace NuXtractor.Textures.DXT
                 .ToArray();
         }
 
-        public Task WriteColorAsync(RgbaVector color)
+        private Task WriteColorAsync(RgbaVector color)
         {
             return Words.WriteToStreamAsync(Stream, ConvertColorToBits(color));
         }
 
-        public async Task WriteTileAsync(RgbaVector[] tile)
+        protected virtual async Task WriteTileAsync(RgbaVector[] tile)
         {
             RgbaVector[] palette = CalcTilePalette(tile);
 
