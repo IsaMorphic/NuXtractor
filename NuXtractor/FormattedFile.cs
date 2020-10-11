@@ -1,6 +1,7 @@
 ﻿using MightyStruct.Runtime;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace NuXtractor
@@ -22,7 +23,7 @@ namespace NuXtractor
 
         public async Task LoadAsync()
         {
-            using (var formatStream = File.OpenRead($".\\Mighty\\{FormatName}.xml"))
+            using (var formatStream = File.OpenRead($"{System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\Mighty\\{FormatName}.xml"))
             {
                 var format = Parser.ParseFromStream(formatStream);
 

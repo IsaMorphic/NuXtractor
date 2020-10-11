@@ -82,7 +82,7 @@ namespace NuXtractor
         static async Task Main(string[] args)
         {
             await Parser.Default.ParseArguments<Options>(args)
-                .MapResult(opts => RunAsync(opts), null);
+                .MapResult(opts => RunAsync(opts), err => Task.CompletedTask);
         }
 
         static void WriteLine(string str = "", OutputImportance type = OutputImportance.Important)
