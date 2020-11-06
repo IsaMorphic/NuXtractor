@@ -94,18 +94,16 @@ types:
         type: u4
       - id: palette
         type: texture_palette
-        size: palette_length - 4
       - id: pixels_length
         type: u4
       - id: pixels
         type: texture_pixels
-        size: pixels_length + 8
   texture_pixels:
     seq:
       - id: unk005
         size: 0xBC
       - id: data
-        size: '_parent.width * _parent.height / ((~_parent.flag & 1) + 1)'
+        size: '_parent.width * _parent.height / ((_parent.flag & 1 == 0 ? 1 : 0) + 1)'
   texture_palette:
     seq:
       - id: unk004
