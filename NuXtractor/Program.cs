@@ -70,11 +70,14 @@ namespace NuXtractor
         [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be CSCgc, GSCps2, NUPv1, NUPv2 or HGPv1")]
         public FileFormat FileFormat { get; set; }
 
-        [Option('t', "texture-format", Required = true, HelpText = "The format of the textures contained in the input file.  Can be DDS, DXT1, CTX, or PNT")]
+        [Option('t', "texture-format", Required = true, HelpText = "The format of the textures contained in the input file.  Can be DDS, DXTn, CTX, or PNT")]
         public TextureFormat TextureFormat { get; set; }
 
         [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be either DUMP or CONV.")]
         public ExtractionMode Mode { get; set; }
+
+        [Option('p', "write-patch", Required = false, HelpText = "Flag indicating whether to write a ModLoader compatible patch file with the relevant file changes. Only applies when using INJC or INJD modes.")]
+        public bool WritePatch { get; set; }
     }
 
     class Program
@@ -154,6 +157,12 @@ namespace NuXtractor
             string dir = options.InputFile + ".textures";
             Directory.CreateDirectory(dir);
 
+
+            Stream patchFile = Stream.Null;
+
+            if(options.WritePatch && (options.Mode == ExtractionMode.INJC || options.Mode == ExtractionMode.INJD))
+                patchFile = File.Create(options.InputFile + ".patch");
+            
             // Start reading textures one by one
             for (int i = 0; i < textures.Count; i++)
             {
@@ -208,8 +217,10 @@ namespace NuXtractor
 
                                     using (var stream = File.OpenRead(injdPath))
                                     {
-                                        await texture.CopyToStreamAsync(stream);
+                                        await texture.CopyFromStreamAsync(stream);
                                     }
+
+                                    await texture.WritePatchAsync(patchFile);
 
                                     WriteLine($"Injected texture #{i} successfully!", OutputImportance.Verbose);
                                 }
@@ -232,12 +243,16 @@ namespace NuXtractor
                                     var image = await Image.LoadAsync<RgbaVector>(injcPath);
                                     await texture.WriteImageAsync(image);
 
+                                    await texture.WritePatchAsync(patchFile);
+
                                     WriteLine($"Injected texture #{i} successfully!", OutputImportance.Verbose);
                                 }
                             }
                             catch (Exception)
                             {
                                 WriteLine($"Failed to inject texture #{i}!", OutputImportance.Error);
+                                WriteLine("Create an issue on github: https://www.github.com/yodadude2003/NuXtractor", OutputImportance.Verbose);
+                                WriteLine("Write us an email: info@chosenfewsoftware.com", OutputImportance.Verbose);
                             }
                             break;
                     }

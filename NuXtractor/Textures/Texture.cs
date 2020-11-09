@@ -16,6 +16,8 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using MightyStruct;
+using MightyStruct.Serializers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -26,6 +28,9 @@ namespace NuXtractor.Textures
 {
     public abstract class Texture : IDisposable, IAsyncDisposable
     {
+        private static readonly ISerializer<ulong> Longs = new UInt64Serializer(EndianInfo.SystemEndianness);
+        private static readonly ISerializer<uint> Ints = new UInt32Serializer(EndianInfo.SystemEndianness);
+
         public int Width { get; }
         public int Height { get; }
 
@@ -45,6 +50,15 @@ namespace NuXtractor.Textures
 
         public abstract Task<Image<RgbaVector>> ReadImageAsync();
         public abstract Task WriteImageAsync(Image<RgbaVector> pixels);
+
+        public async Task WritePatchAsync(Stream stream)
+        {
+            await Longs.WriteToStreamAsync(stream, (ulong)(Stream as SubStream).AbsoluteOffset);
+            await Ints.WriteToStreamAsync(stream, (uint)Stream.Length);
+
+            Stream.Seek(0, SeekOrigin.Begin);
+            await Stream.CopyToAsync(stream);
+        }
 
         public Task CopyToStreamAsync(Stream stream)
         {
