@@ -17,11 +17,12 @@
  */
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
     public interface ITextureContainer<T> where T : Texture
     {
-        List<Texture> GetTextures();
+        Task<List<Texture>> GetTexturesAsync();
     }
 }

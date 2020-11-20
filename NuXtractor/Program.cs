@@ -123,10 +123,10 @@ namespace NuXtractor
                 switch (options.FileFormat)
                 {
                     case FileFormat.NUXv1:
-                        file = new ContainerV1("nux_v1", options.InputFile);
+                        file = new XboxContainerV1("nux_v1", options.InputFile);
                         break;
                     case FileFormat.HGXv1:
-                        file = new ContainerV1("hgx_v1", options.InputFile);
+                        file = new XboxContainerV1("hgx_v1", options.InputFile);
                         break;
                 }
                 await file.LoadAsync();
@@ -144,7 +144,10 @@ namespace NuXtractor
                 switch (options.TextureFormat)
                 {
                     case TextureFormat.DXTn:
-                        textures = (file as ITextureContainer<DXT1Texture>).GetTextures();
+                        textures = await (file as ITextureContainer<DXT1Texture>).GetTexturesAsync();
+                        break;
+                    case TextureFormat.DDS:
+                        textures = await (file as ITextureContainer<DDSTexture>).GetTexturesAsync();
                         break;
                 }
             }

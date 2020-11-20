@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+Copyright 2020 Chosen Few Software
+This file is part of NuXtractor.
+
+NuXtractor is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+NuXtractor is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ -->
+<type name="dds_texture">
+  <type name="dds_pixelformat">
+    <attr name="size" type="u4le" />
+    <attr name="flags" type="u4le" />
+    <attr name="fourCC" type="u4le" />
+    <attr name="rgbBitCount" type="u4le" />
+    <attr name="rBitMask" type="u4le" />
+    <attr name="gBitMask" type="u4le" />
+    <attr name="bBitMask" type="u4le" />
+    <attr name="aBitMask" type="u4le" />
+  </type>
+  <type name="dds_header">
+    <attr name="magic" type="u4le" />
+    <attr name="size" type="u4le" />
+    <attr name="flags" type="u4le" />
+    <attr name="height" type="u4le" />
+    <attr name="width" type="u4le" />
+    <attr name="pitch" type="u4le" />
+    <attr name="depth" type="u4le" />
+    <attr name="mipmapCount" type="u4le" />
+    <attr name="reserved1" type="u4le">
+      <repeat>expr</repeat>
+      <repeat-expr>11</repeat-expr>
+    </attr>
+    <attr name="pixelFormat" type="dds_pixelformat" />
+    <attr name="caps" type="u4le" />
+    <attr name="caps2" type="u4le" />
+    <attr name="caps3" type="u4le" />
+    <attr name="caps4" type="u4le" />
+    <attr name="reserved2" type="u4le" />
+  </type>
+  <attr name="header" type="dds_header" />
+  <attr name="data">
+    <size>_self._io._parent.size - _self._io.pos</size>
+  </attr>
+</type>
+
