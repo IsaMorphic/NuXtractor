@@ -67,13 +67,13 @@ namespace NuXtractor
         [Option('i', "input-file", Required = true, HelpText = "Path to the input file.")]
         public string InputFile { get; set; }
 
-        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be CSCgc, GSCps2, NUPv1, NUPv2 or HGPv1")]
+        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be CSCgc, GSCps2, NUXv1, NUXv2 or HGXv1")]
         public FileFormat FileFormat { get; set; }
 
         [Option('t', "texture-format", Required = true, HelpText = "The format of the textures contained in the input file.  Can be DDS, DXTn, CTX, or PNT")]
         public TextureFormat TextureFormat { get; set; }
 
-        [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be either DUMP or CONV.")]
+        [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be DUMP, CONV(ert), INJ(ect)C(onvert), or INJ(ect)D(ump).")]
         public ExtractionMode Mode { get; set; }
 
         [Option('p', "write-patch", Required = false, HelpText = "Flag indicating whether to write a ModLoader compatible patch file with the relevant file changes. Only applies when using INJC or INJD modes.")]
@@ -123,10 +123,10 @@ namespace NuXtractor
                 switch (options.FileFormat)
                 {
                     case FileFormat.NUXv1:
-                        file = new XboxContainerV1("nux_v1", options.InputFile);
+                        file = new ContainerV1("nux_v1", options.InputFile);
                         break;
                     case FileFormat.HGXv1:
-                        file = new XboxContainerV1("hgx_v1", options.InputFile);
+                        file = new ContainerV1("hgx_v1", options.InputFile);
                         break;
                 }
                 await file.LoadAsync();

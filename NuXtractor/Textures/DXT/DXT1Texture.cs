@@ -270,7 +270,7 @@ namespace NuXtractor.Textures.DXT
                         {
                             int tx = (x + (3 - (i % 4))) << l;
                             int ty = (y + (i / 4)) << l;
-                            if (tx < Width >> l && ty < Height >> l)
+                            if (tx < Width && ty < Height)
                             {
                                 tile[i] = image[tx, ty];
                             }

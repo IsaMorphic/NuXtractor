@@ -28,9 +28,9 @@ using System.Threading.Tasks;
 
 namespace NuXtractor.Formats
 {
-    public partial class XboxContainerV1 : FormattedFile, ITextureContainer<DXT1Texture>, ITextureContainer<DDSTexture>
+    public partial class ContainerV1 : FormattedFile, ITextureContainer<DXT1Texture>, ITextureContainer<DDSTexture>
     {
-        public XboxContainerV1(string format, string path) : base(format, path)
+        public ContainerV1(string format, string path) : base(format, path)
         {
         }
 
