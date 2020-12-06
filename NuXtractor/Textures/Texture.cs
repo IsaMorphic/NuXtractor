@@ -31,6 +31,8 @@ namespace NuXtractor.Textures
         private static readonly ISerializer<ulong> Longs = new UInt64Serializer(EndianInfo.SystemEndianness);
         private static readonly ISerializer<uint> Ints = new UInt32Serializer(EndianInfo.SystemEndianness);
 
+        public int Id { get; }
+
         public int Width { get; }
         public int Height { get; }
 
@@ -38,8 +40,10 @@ namespace NuXtractor.Textures
 
         protected Stream Stream { get; }
 
-        public Texture(int width, int height, int levels, Stream stream)
+        public Texture(int id, int width, int height, int levels, Stream stream)
         {
+            Id = id;
+
             Width = width;
             Height = height;
 

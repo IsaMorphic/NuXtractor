@@ -12,7 +12,7 @@ namespace NuXtractor.Textures.DXT
     {
         private ISerializer<byte> Bytes { get; }
 
-        public DXT3Texture(int width, int height, int levels, Endianness endianness, Stream stream) : base(width, height, levels, endianness, stream)
+        public DXT3Texture(int id, int width, int height, int levels, Endianness endianness, Stream stream) : base(id, width, height, levels, endianness, stream)
         {
             Bytes = new UInt8Serializer();
         }
