@@ -1,18 +1,31 @@
-﻿using NuXtractor.Materials;
-using System.IO;
+﻿using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace NuXtractor.Models
 {
+    using Materials;
+
     public abstract class Model
     {
-        public int Id { get; }
+        public Model Next { get; }
         public Material Material { get; }
 
-        public Model(int id, Material material)
+        public List<Model> SubModels
         {
-            Id = id;
+            get
+            {
+                var subModels = new List<Model> { this };
+                if (Next != null)
+                    subModels.AddRange(Next.SubModels);
+                return subModels;
+            }
+        }
+
+        public Model(Model next, Material material)
+        {
+            Next = next;
             Material = material;
         }
 
@@ -26,7 +39,6 @@ namespace NuXtractor.Models
         public async Task WriteToOBJAsync(StreamWriter writer, Matrix4x4? transform = null)
         {
             await writer.WriteLineAsync($"usemtl material_{Material.Id}");
-            await writer.WriteLineAsync($"g model_{Id}");
 
             var uvs = await GetUVsAsync();
             var verticies = await GetVerticesAsync();
@@ -52,6 +64,8 @@ namespace NuXtractor.Models
                 }
                 await writer.WriteAsync("\n");
             }
+
+            if (Next != null) await Next.WriteToOBJAsync(writer, transform ?? Matrix4x4.Identity);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace NuXtractor.Formats.V1
 
     public class HGXContainer : Container, ITextureContainer
     {
-        public HGXContainer(string path) : base("hgx_v1", path)
+        public HGXContainer(string path) : base("hgo_v1", path)
         {
         }
 

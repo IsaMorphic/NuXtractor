@@ -25,8 +25,8 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="unk001" type="u4le" />
     <attr name="vertex_offset" type="u4le" />
     <attr name="model_offset" type="u4le" />
-    <attr name="unk002" type="u4le" />
     <attr name="object_offset" type="u4le" />
+    <attr name="dynamic_offset" type="u4le" />
   </type>
   <type name="textures">
     <type name="header">
@@ -134,11 +134,9 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="num_materials" type="u4le" />
       <attr name="num_models" type="u4le" />
       <attr name="list_offset" type="u4le" />
-      <attr name="unk001" type="u4le">
-        <repeat>expr</repeat>
-        <repeat-expr>2</repeat-expr>
-      </attr>
       <attr name="num_objects" type="u4le" />
+      <attr name="unk001" type="u4le" />
+      <attr name="num_dynamics" type="u4le" />
       <attr name="unk002" type="u4le" />
       <attr name="num_locators" type="u4le" />
       <attr name="locator_offset" type="u4le" />
@@ -170,10 +168,12 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
           <offset>_self.data_offset + 64</offset>
         </attr>
       </type>
-      <attr name="unk000" type="u4le">
-        <repeat>expr</repeat>
-        <repeat-expr>2</repeat-expr>
+      <attr name="next_offset" type="u4le" />
+      <attr name="next" type="model">
+        <if>_self.next_offset != 0</if>
+        <offset>_self.next_offset + 64</offset>
       </attr>
+      <attr name="unk000" type="u4le" />
       <attr name="material" type="u4le" />
       <attr name="vtx_type" type="u4le" />
       <attr name="unk001" type="u4le">
@@ -220,14 +220,41 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <offset>_self.header.list_offset + 64</offset>
     </attr>
   </type>
-  <type name="objects">
-    <type name="object">
+  <type name="object">
+    <type name="info">
       <attr name="transform" type="f4le">
         <repeat>expr</repeat>
         <repeat-expr>16</repeat-expr>
       </attr>
-      <attr name="group" type="u2le" />
+      <attr name="unk000" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>7</repeat-expr>
+      </attr>
+      <attr name="group" type="u4le" />
     </type>
+    <attr name="transform" type="f4le">
+      <repeat>expr</repeat>
+      <repeat-expr>16</repeat-expr>
+    </attr>
+    <attr name="model" type="u2le" />
+    <attr name="unk000" type="u2le" />
+    <attr name="unk001" type="u4le" />
+    <attr name="offset" type="u4le" />
+    <attr name="unk002" type="u4le" />
+    <attr name="info" type="info">
+      <if>_self.offset != 0</if>
+      <offset>_self.offset + 64</offset>
+    </attr>
+  </type>
+  <type name="objects">
+    <attr name="desc" type="object">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self._parent.models.header.num_objects
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="dynamics">
     <type name="desc">
       <attr name="transform" type="f4le">
         <repeat>expr</repeat>
@@ -249,7 +276,7 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="desc" type="desc">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_objects
+        (int)_self._parent.models.header.num_dynamics
       </repeat-expr>
     </attr>
   </type>
@@ -258,24 +285,24 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="count" type="u2le" />
       <attr name="unk000" type="u2le" />
       <attr name="name_offset" type="u4le" />
-      <attr name="pos_offset" type="u4le" />
+      <attr name="loc_offset" type="u4le" />
       <attr name="name" type="str_ascii">
         <offset>_self.name_offset + 64</offset>
       </attr>
-      <attr name="pos" type="vector">
+      <attr name="location" type="vector">
         <offset>_self.pos_offset + 64</offset>
       </attr>
     </type>
     <attr name="desc" type="desc">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_locators
+        (int)_self._parent.models.header.num_static
       </repeat-expr>
     </attr>
   </type>
   <type name="groups">
     <type name="level3">
-      <attr name="model" type="u4le" />
+      <attr name="stat" type="u4le" />
     </type>
     <type name="level2">
       <type name="desc">
@@ -295,7 +322,7 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         </attr>
       </type>
       <attr name="num_children" type="u4le" />
-      <attr name="model" type="u4le" />
+      <attr name="stat" type="u4le" />
       <attr name="desc_offset" type="u4le" />
       <attr name="desc" type="desc">
         <offset>_self.desc_offset + 64</offset>
@@ -334,7 +361,7 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         (int)_self._parent.models.header.num_groups
       </repeat-expr>
     </attr>
-    <attr name="roots" type="level1">
+    <attr name="root" type="level1">
       <if>_self.offsets[_index] != 0</if>
       <offset>_self.offsets[_index] + 64</offset>
       <repeat>expr</repeat>
@@ -369,14 +396,9 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       _self.header.object_offset + 64
     </offset>
   </attr>
-  <attr name="locators" type="locators">
+  <attr name="dynamics" type="dynamics">
     <offset>
-      _self.models.header.locator_offset + 64
-    </offset>
-  </attr>
-  <attr name="groups" type="groups">
-    <offset>
-      _self.models.header.group_offset + 64
+      _self.header.dynamic_offset + 64
     </offset>
   </attr>
 </type>

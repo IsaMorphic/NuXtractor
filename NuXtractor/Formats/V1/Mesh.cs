@@ -16,7 +16,7 @@ namespace NuXtractor.Formats.V1
         private Vertex[] CachedVerticies { get; set; }
         private Face[] CachedFaces { get; set; }
 
-        public Mesh(int id, Material material, int[] indicies, VertexStream stream) : base(id, material)
+        public Mesh(Model next, Material material, int[] indicies, VertexStream stream) : base(next, material)
         {
             Indicies = indicies;
             Stream = stream;

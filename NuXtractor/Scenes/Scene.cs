@@ -1,7 +1,8 @@
-﻿using System.IO;
+﻿using SixLabors.ImageSharp;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using SixLabors.ImageSharp;
 
 namespace NuXtractor.Scenes
 {
@@ -11,10 +12,10 @@ namespace NuXtractor.Scenes
 
     public class Scene
     {
-        public SceneObject[] Objects { get; }
+        public List<SceneObject> Objects { get; }
 
         public Model[] Models => Objects
-            .SelectMany(o => o.Models)
+            .SelectMany(o => o.Model.SubModels)
             .Distinct().ToArray();
 
         public Material[] Materials => Models
@@ -26,9 +27,9 @@ namespace NuXtractor.Scenes
             .Where(t => t != null)
             .Distinct().ToArray();
 
-        public Scene(SceneObject[] objects)
+        public Scene()
         {
-            Objects = objects;
+            Objects = new List<SceneObject>();
         }
 
         public async Task ArchiveAsync(string dir)
@@ -66,11 +67,7 @@ namespace NuXtractor.Scenes
 
                 foreach (var obj in Objects)
                 {
-                    await writer.WriteLineAsync($"o {obj.Name}");
-                    foreach (var model in obj.Models) 
-                    {
-                        await model.WriteToOBJAsync(writer, obj.Transform);
-                    }
+                    await obj.WriteToOBJAsync(writer);
                 }
             }
         }

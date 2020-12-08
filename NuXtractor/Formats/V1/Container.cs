@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace NuXtractor.Formats.V1
 {
@@ -15,6 +16,8 @@ namespace NuXtractor.Formats.V1
         public Model[] CachedModels { get; private set; }
         public int ModelCount => data.models.list.desc.size;
 
+        public Dictionary<long, Model> CachedSubModels { get; private set; }
+
         public Material[] CachedMaterials { get; private set; }
         public int MaterialCount => data.materials.desc.size;
 
@@ -24,7 +27,10 @@ namespace NuXtractor.Formats.V1
         protected override Task OnLoadAsync()
         {
             CachedModels = new Model[ModelCount];
+            CachedSubModels = new Dictionary<long, Model>();
+
             CachedMaterials = new Material[MaterialCount];
+
             CachedTextures = new Texture[TextureCount];
 
             return base.OnLoadAsync();
