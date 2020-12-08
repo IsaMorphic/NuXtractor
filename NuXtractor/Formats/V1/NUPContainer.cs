@@ -7,7 +7,7 @@ namespace NuXtractor.Formats.V1
 
     public class NUPContainer : LevelContainer, ITextureContainer
     {
-        public NUPContainer(string path) : base(path)
+        public NUPContainer(string format, string path) : base(format, path)
         {
         }
 

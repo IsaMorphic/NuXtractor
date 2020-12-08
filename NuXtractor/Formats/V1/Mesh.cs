@@ -101,7 +101,7 @@ namespace NuXtractor.Formats.V1
 
             for (int i = 0; i < faceArr.Length; i++)
             {
-                faceArr[i] = new Face(i, vtxArr[idxArr[i + 0]], vtxArr[idxArr[i + 1]], vtxArr[idxArr[i + 2]]);
+                faceArr[i] = new Face(i, vtxArr[idxArr[i + i % 2]], vtxArr[idxArr[i - i % 2 + 1]], vtxArr[idxArr[i + 2]]);
             }
 
             CachedFaces = faceArr;

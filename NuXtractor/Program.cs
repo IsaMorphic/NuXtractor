@@ -30,9 +30,10 @@ namespace NuXtractor
 {
     enum FileFormat
     {
+        NUXv0,
+        NUXv1,
         NUPv1,
         HGPv1,
-        NUXv1,
         HGXv1
     }
 
@@ -57,7 +58,7 @@ namespace NuXtractor
         [Option('i', "input-file", Required = true, HelpText = "Path to the input file.")]
         public string InputFile { get; set; }
 
-        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be CSCgc, GSCps2, NUXv1, NUXv2 or HGXv1")]
+        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be NUXv0, NUXv1 or NUPv1")]
         public FileFormat FileFormat { get; set; }
     }
 
@@ -129,14 +130,17 @@ namespace NuXtractor
             {
                 switch (options.FileFormat)
                 {
+                    case FileFormat.NUXv0:
+                        file = new Formats.V1.NUXContainer("nux_v0", options.InputFile);
+                        break;
+                    case FileFormat.NUXv1:
+                        file = new Formats.V1.NUXContainer("nux_v1", options.InputFile);
+                        break;
                     case FileFormat.NUPv1:
-                        file = new Formats.V1.NUPContainer(options.InputFile);
+                        file = new Formats.V1.NUPContainer("nup_v1", options.InputFile);
                         break;
                     case FileFormat.HGPv1:
                         file = new Formats.V1.HGPContainer(options.InputFile);
-                        break;
-                    case FileFormat.NUXv1:
-                        file = new Formats.V1.NUXContainer(options.InputFile);
                         break;
                     case FileFormat.HGXv1:
                         file = new Formats.V1.HGXContainer(options.InputFile);
@@ -181,7 +185,50 @@ namespace NuXtractor
             var scene = await file.GetSceneAsync();
 
             string dir = options.InputFile + ".extracted";
-            await scene.ArchiveAsync(dir);
+            Directory.CreateDirectory(dir);
+
+            var mtlPath = Path.Combine(dir, "materials.mtl");
+
+            using (var writer = File.CreateText(mtlPath))
+            {
+                writer.AutoFlush = true;
+                foreach (var material in scene.Materials)
+                {
+                    WriteLine($"Extracting material with id: {material.Id}...");
+                    await material.WriteToMTLAsync(writer);
+                    WriteLine($"Wrote material with id: {material.Id} to {mtlPath}.", OutputImportance.Verbose);
+                }
+            }
+
+            var texDir = Path.Combine(dir, "textures");
+            Directory.CreateDirectory(texDir);
+
+            foreach (var texture in scene.Textures)
+            {
+                WriteLine($"Extracting texture with id: {texture.Id}...");
+                var image = await texture.ReadImageAsync();
+
+                var texPath = Path.Combine(texDir, $"texture_{texture.Id}.png");
+                await image.SaveAsPngAsync(texPath);
+
+                WriteLine($"Wrote texture with id: {texture.Id} to {texPath}.", OutputImportance.Verbose);
+            }
+
+            var objPath = Path.Combine(dir, "scene.obj");
+            using (var writer = File.CreateText(objPath))
+            {
+                writer.AutoFlush = true;
+
+                await writer.WriteLineAsync("mtllib .\\materials.mtl");
+
+                foreach (var obj in scene.Objects)
+                {
+                    WriteLine($"Extracting object with name: {obj.Name}...");
+                    await obj.WriteToOBJAsync(writer);
+                    WriteLine($"Wrote object with name: {obj.Name} to {objPath}.", OutputImportance.Verbose);
+                }
+            }
+
             Goodbye();
         }
 

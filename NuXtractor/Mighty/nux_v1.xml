@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+Copyright 2020 Chosen Few Software
+This file is part of NuXtractor.
+
+NuXtractor is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+NuXtractor is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ -->
+<type name="nux_v1">
+  <type name="file_header">
+    <attr name="unk000" type="u4le" />
+    <attr name="string_offset" type="u4le" />
+    <attr name="texture_offset" type="u4le" />
+    <attr name="material_offset" type="u4le" />
+    <attr name="unk001" type="u4le" />
+    <attr name="vertex_offset" type="u4le" />
+    <attr name="model_offset" type="u4le" />
+    <attr name="object_offset" type="u4le" />
+    <attr name="dynamic_offset" type="u4le" />
+  </type>
+  <type name="textures">
+    <type name="header">
+      <attr name="data_offset" type="u4le" />
+      <attr name="last_offset" type="u4le" />
+      <attr name="count" type="u4le" />
+    </type>
+    <type name="desc">
+      <attr name="width" type="u4le" />
+      <attr name="height" type="u4le" />
+      <attr name="levels" type="u4le" />
+      <attr name="type" type="u4le" />
+      <attr name="offset" type="u4le" />
+    </type>
+    <attr name="header" type="header" />
+    <attr name="desc" type="desc">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.header.count
+      </repeat-expr>
+    </attr>
+    <attr name="padding">
+      <size>
+        _self.header.data_offset - _self.header.count * 20
+      </size>
+    </attr>
+    <attr name="data">
+      <size>
+        (_index &lt; _self.desc.size - 1) ? _self.desc[_index + 1].offset - _self.desc[_index].offset : _self.header.last_offset - _self.desc[_index].offset
+      </size>
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.header.count
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="materials">
+    <type name="material">
+      <type name="color">
+        <attr name="red" type="f4le" />
+        <attr name="green" type="f4le" />
+        <attr name="blue" type="f4le" />
+      </type>
+      <attr name="unk000" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>20</repeat-expr>
+      </attr>
+      <attr name="color" type="color" />
+      <attr name="unk001" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>5</repeat-expr>
+      </attr>
+      <attr name="alpha" type="f4le" />
+      <attr name="texture" type="u1" />
+    </type>
+    <attr name="count" type="u4le"/>
+    <attr name="offsets" type="u4le">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.count
+      </repeat-expr>
+    </attr>
+    <attr name="desc" type="material">
+      <offset>_self.offsets[_index] + 64</offset>
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.count
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="verticies">
+    <type name="header">
+      <attr name="num_entries" type="u8le" />
+      <attr name="data_size" type="u4le" />
+      <attr name="data_offset" type="u4le" />
+    </type>
+    <type name="block">
+      <attr name="size" type="u4le" />
+      <attr name="index" type="u4le" />
+      <attr name="offset" type="u4le" />
+      <attr name="data">
+        <offset>_self._parent._parent.header.vertex_offset + _self.offset + 64</offset>
+        <size>_self.size</size>
+      </attr>
+    </type>
+    <attr name="header" type="header" />
+    <attr name="blocks" type="block">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.header.num_entries
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="vector">
+    <attr name="x" type="f4le" />
+    <attr name="y" type="f4le" />
+    <attr name="z" type="f4le" />
+  </type>
+  <type name="models">
+    <type name="header">
+      <attr name="unk000" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>3</repeat-expr>
+      </attr>
+      <attr name="num_materials" type="u4le" />
+      <attr name="num_models" type="u4le" />
+      <attr name="list_offset" type="u4le" />
+      <attr name="num_objects" type="u4le" />
+      <attr name="unk001" type="u4le" />
+      <attr name="num_dynamics" type="u4le" />
+      <attr name="unk002" type="u4le" />
+      <attr name="num_locators" type="u4le" />
+      <attr name="locator_offset" type="u4le" />
+      <attr name="unk003" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>6</repeat-expr>
+      </attr>
+      <attr name="group_offset" type="u4le" />
+      <attr name="num_groups" type="u4le" />
+    </type>
+    <type name="model">
+      <type name="elements">
+        <type name="data">
+          <attr name="indicies" type="u2le">
+            <repeat>expr</repeat>
+            <repeat-expr>
+              (int)_self._parent.count
+            </repeat-expr>
+          </attr>
+        </type>
+        <attr name="unk000" type="u4le">
+          <repeat>expr</repeat>
+          <repeat-expr>2</repeat-expr>
+        </attr>
+        <attr name="count" type="u2le" />
+        <attr name="unk001" type="u2le" />
+        <attr name="data_offset" type="u4le" />
+        <attr name="data" type="data">
+          <offset>_self.data_offset + 64</offset>
+        </attr>
+      </type>
+      <attr name="next_offset" type="u4le" />
+      <attr name="next" type="model">
+        <if>_self.next_offset != 0</if>
+        <offset>_self.next_offset + 64</offset>
+      </attr>
+      <attr name="unk000" type="u4le" />
+      <attr name="material" type="u4le" />
+      <attr name="vtx_type" type="u4le" />
+      <attr name="unk001" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>3</repeat-expr>
+      </attr>
+      <attr name="vtx_block" type="u4le" />
+      <attr name="unk002" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>4</repeat-expr>
+      </attr>
+      <attr name="elem_offset" type="u4le" />
+      <attr name="elements" type="elements">
+        <offset>_self.elem_offset + 64</offset>
+      </attr>
+    </type>
+    <type name="desc">
+      <attr name="unk000" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>3</repeat-expr>
+      </attr>
+      <attr name="offset" type="u4le" />
+      <attr name="model" type="model">
+        <offset>_self.offset + 64</offset>
+      </attr>
+    </type>
+    <type name="list">
+      <attr name="offsets" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>
+          (int)_self._parent.header.num_models
+        </repeat-expr>
+      </attr>
+      <attr name="desc" type="desc">
+        <offset>_self.offsets[_index] + 64</offset>
+        <repeat>expr</repeat>
+        <repeat-expr>
+          (int)_self._parent.header.num_models
+        </repeat-expr>
+      </attr>
+    </type>
+    <attr name="header" type="header" />
+    <attr name="list" type="list">
+      <offset>_self.header.list_offset + 64</offset>
+    </attr>
+  </type>
+  <type name="object">
+    <type name="info">
+      <attr name="transform" type="f4le">
+        <repeat>expr</repeat>
+        <repeat-expr>16</repeat-expr>
+      </attr>
+      <attr name="unk000" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>7</repeat-expr>
+      </attr>
+      <attr name="group" type="u4le" />
+    </type>
+    <attr name="transform" type="f4le">
+      <repeat>expr</repeat>
+      <repeat-expr>16</repeat-expr>
+    </attr>
+    <attr name="model" type="u2le" />
+    <attr name="unk000" type="u2le" />
+    <attr name="unk001" type="u4le" />
+    <attr name="offset" type="u4le" />
+    <attr name="unk002" type="u4le" />
+    <attr name="info" type="info">
+      <if>_self.offset != 0</if>
+      <offset>_self.offset + 64</offset>
+    </attr>
+  </type>
+  <type name="objects">
+    <attr name="desc" type="object">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self._parent.models.header.num_objects
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="dynamics">
+    <type name="desc">
+      <attr name="transform" type="f4le">
+        <repeat>expr</repeat>
+        <repeat-expr>16</repeat-expr>
+      </attr>
+      <attr name="obj_offset" type="u4le" />
+      <attr name="name_offset" type="u4le" />
+      <attr name="unk001" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>2</repeat-expr>
+      </attr>
+      <attr name="obj" type="object">
+        <offset>_self.obj_offset + 64</offset>
+      </attr>
+      <attr name="name" type="str_ascii">
+        <offset>_self.name_offset + 64</offset>
+      </attr>
+    </type>
+    <attr name="desc" type="desc">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self._parent.models.header.num_dynamics
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="locators">
+    <type name="desc">
+      <attr name="count" type="u2le" />
+      <attr name="unk000" type="u2le" />
+      <attr name="name_offset" type="u4le" />
+      <attr name="loc_offset" type="u4le" />
+      <attr name="name" type="str_ascii">
+        <offset>_self.name_offset + 64</offset>
+      </attr>
+      <attr name="location" type="vector">
+        <offset>_self.pos_offset + 64</offset>
+      </attr>
+    </type>
+    <attr name="desc" type="desc">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self._parent.models.header.num_static
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="groups">
+    <type name="level3">
+      <attr name="stat" type="u4le" />
+    </type>
+    <type name="level2">
+      <type name="desc">
+        <attr name="offsets" type="u4le">
+          <repeat>expr</repeat>
+          <repeat-expr>
+            (int)_self._parent.num_children
+          </repeat-expr>
+        </attr>
+        <attr name="children" type="level3">
+          <if>_self.offsets[_index] != 0</if>
+          <offset>_self.offsets[_index] + 64</offset>
+          <repeat>expr</repeat>
+          <repeat-expr>
+            (int)_self._parent.num_children
+          </repeat-expr>
+        </attr>
+      </type>
+      <attr name="num_children" type="u4le" />
+      <attr name="stat" type="u4le" />
+      <attr name="desc_offset" type="u4le" />
+      <attr name="desc" type="desc">
+        <offset>_self.desc_offset + 64</offset>
+      </attr>
+    </type>
+    <type name="level1">
+      <type name="desc">
+        <attr name="offsets" type="u4le">
+          <repeat>expr</repeat>
+          <repeat-expr>
+            (int)_self._parent.num_children
+          </repeat-expr>
+        </attr>
+        <attr name="children" type="level2">
+          <if>_self.offsets[_index] != 0</if>
+          <offset>_self.offsets[_index] + 64</offset>
+          <repeat>expr</repeat>
+          <repeat-expr>
+            (int)_self._parent.num_children
+          </repeat-expr>
+        </attr>
+      </type>
+      <attr name="unk000" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>2</repeat-expr>
+      </attr>
+      <attr name="num_children" type="u4le" />
+      <attr name="desc_offset" type="u4le" />
+      <attr name="desc" type="desc">
+        <offset>_self.desc_offset + 64</offset>
+      </attr>
+    </type>
+    <attr name="offsets" type="u4le">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self._parent.models.header.num_groups
+      </repeat-expr>
+    </attr>
+    <attr name="root" type="level1">
+      <if>_self.offsets[_index] != 0</if>
+      <offset>_self.offsets[_index] + 64</offset>
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self._parent.models.header.num_groups
+      </repeat-expr>
+    </attr>
+  </type>
+  <attr name="header" type="file_header" />
+  <attr name="textures" type="textures">
+    <offset>
+      _self.header.texture_offset + 64
+    </offset>
+  </attr>
+  <attr name="materials" type="materials">
+    <offset>
+      _self.header.material_offset + 64
+    </offset>
+  </attr>
+  <attr name="verticies" type="verticies">
+    <offset>
+      _self.header.vertex_offset + 64
+    </offset>
+  </attr>
+  <attr name="models" type="models">
+    <offset>
+      _self.header.model_offset + 64
+    </offset>
+  </attr>
+  <attr name="objects" type="objects">
+    <offset>
+      _self.header.object_offset + 64
+    </offset>
+  </attr>
+  <attr name="dynamics" type="dynamics">
+    <offset>
+      _self.header.dynamic_offset + 64
+    </offset>
+  </attr>
+</type>

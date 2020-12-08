@@ -10,7 +10,7 @@ namespace NuXtractor.Formats.V1
 
     public abstract class LevelContainer : Container, ISceneContainer
     {
-        protected LevelContainer(string path) : base("nu2_v1", path)
+        protected LevelContainer(string format, string path) : base(format, path)
         {
         }
 
