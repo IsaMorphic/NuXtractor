@@ -11,8 +11,8 @@ namespace NuXtractor.Formats.V1
         X = 0,
         Y = 4,
         Z = 8,
-        U = 16,
-        V = 20,
+        U = 28,
+        V = 32,
         Color = 24
     }
 

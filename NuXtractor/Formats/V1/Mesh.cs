@@ -36,7 +36,7 @@ namespace NuXtractor.Formats.V1
                 var u = BitConverter.Int32BitsToSingle(uArr[i]);
                 var v = BitConverter.Int32BitsToSingle(vArr[i]);
 
-                uvArr[i] = new UVCoord(i, u, v);
+                uvArr[i] = new UVCoord(i, u, 1 - v);
             }
 
             CachedUVs = uvArr;
