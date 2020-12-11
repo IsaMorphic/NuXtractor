@@ -17,6 +17,7 @@
  */
 
 using CommandLine;
+using NuXtractor.Converters;
 using NuXtractor.Models;
 using NuXtractor.Scenes;
 using NuXtractor.Textures;
@@ -72,6 +73,11 @@ namespace NuXtractor
     {
     }
 
+    [Verb("convert", HelpText = "Convert a TT Games data container to another format")]
+    class ConvertOptions : Options
+    {
+    }
+
     [Verb("textures", HelpText = "Extract and inject textures into and from a TT Games data container.")]
     class TextureOptions : Options
     {
@@ -82,16 +88,19 @@ namespace NuXtractor
         public bool WritePatch { get; set; }
     }
 
+
+
     class Program
     {
         static async Task Main(string[] args)
         {
             await Parser.Default
-                .ParseArguments<TextureOptions, ModelOptions, SceneOptions>(args)
+                .ParseArguments<TextureOptions, ModelOptions, SceneOptions, ConvertOptions>(args)
                 .MapResult(
                     (TextureOptions opts) => RunTexturesAsync(opts),
                     (ModelOptions opts) => RunModelsAsync(opts),
                     (SceneOptions opts) => RunAllAsync(opts),
+                    (ConvertOptions opts) => RunConvertAsync(opts),
                     err => Task.CompletedTask
                     );
         }
@@ -230,6 +239,12 @@ namespace NuXtractor
             }
 
             Goodbye();
+        }
+
+        static Task RunConvertAsync(ConvertOptions options)
+        {
+            var converter = new PrototypeNUXConverter(options.InputFile);
+            return converter.ConvertAsync();
         }
 
         static async Task ProcessModelsAsync(ModelOptions options, IModelContainer container)

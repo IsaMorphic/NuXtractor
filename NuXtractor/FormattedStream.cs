@@ -16,10 +16,10 @@ namespace NuXtractor
             CachedTypes = new Dictionary<string, IType>();
         }
 
-        private string FormatName { get; }
-        private Stream Stream { get; }
+        public string FormatName { get; }
+        public Stream Stream { get; }
 
-        protected dynamic data { get; private set; }
+        public dynamic data { get; private set; }
 
         public FormattedStream(string formatName, Stream stream)
         {

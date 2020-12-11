@@ -32,7 +32,7 @@ namespace NuXtractor.Textures
 
         public DXTType PixelFormat { get; private set; }
 
-        public Stream Stream { get; private set; }
+        public new Stream Stream { get; private set; }
 
         protected override Task OnLoadAsync()
         {

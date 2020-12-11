@@ -27,6 +27,11 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="model_offset" type="u4le" />
     <attr name="object_offset" type="u4le" />
     <attr name="dynamic_offset" type="u4le" />
+    <attr name="unk003" type="u4le">
+      <repeat>expr</repeat>
+      <repeat-expr>6</repeat-expr>
+    </attr>
+    <attr name="end_offset" type="u4le" />
   </type>
   <type name="textures">
     <type name="header">
@@ -291,19 +296,19 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         <offset>_self.name_offset + 64</offset>
       </attr>
       <attr name="location" type="vector">
-        <offset>_self.pos_offset + 64</offset>
+        <offset>_self.loc_offset + 64</offset>
       </attr>
     </type>
     <attr name="desc" type="desc">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_static
+        (int)_self._parent.models.header.num_locators
       </repeat-expr>
     </attr>
   </type>
   <type name="groups">
     <type name="level3">
-      <attr name="stat" type="u4le" />
+      <attr name="flag" type="u4le" />
     </type>
     <type name="level2">
       <type name="desc">
@@ -323,7 +328,7 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         </attr>
       </type>
       <attr name="num_children" type="u4le" />
-      <attr name="stat" type="u4le" />
+      <attr name="flag" type="u4le" />
       <attr name="desc_offset" type="u4le" />
       <attr name="desc" type="desc">
         <offset>_self.desc_offset + 64</offset>
@@ -400,6 +405,16 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
   <attr name="dynamics" type="dynamics">
     <offset>
       _self.header.dynamic_offset + 64
+    </offset>
+  </attr>
+  <attr name="locators" type="locators">
+    <offset>
+      _self.models.header.locator_offset + 64
+    </offset>
+  </attr>
+  <attr name="groups" type="groups">
+    <offset>
+      _self.models.header.group_offset + 64
     </offset>
   </attr>
 </type>
