@@ -63,6 +63,11 @@ namespace NuXtractor
         public FileFormat FileFormat { get; set; }
     }
 
+    [Verb("test", HelpText = "test")]
+    class TestOptions : Options
+    {
+    }
+
     [Verb("all", HelpText = "Extract all data from a TT Games data container")]
     class SceneOptions : Options
     {
@@ -95,12 +100,13 @@ namespace NuXtractor
         static async Task Main(string[] args)
         {
             await Parser.Default
-                .ParseArguments<TextureOptions, ModelOptions, SceneOptions, ConvertOptions>(args)
+                .ParseArguments<TextureOptions, ModelOptions, SceneOptions, ConvertOptions, TestOptions>(args)
                 .MapResult(
                     (TextureOptions opts) => RunTexturesAsync(opts),
                     (ModelOptions opts) => RunModelsAsync(opts),
                     (SceneOptions opts) => RunAllAsync(opts),
                     (ConvertOptions opts) => RunConvertAsync(opts),
+                    (TestOptions opts) => RunTestAsync(opts),
                     err => Task.CompletedTask
                     );
         }
@@ -172,6 +178,16 @@ namespace NuXtractor
             WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
             WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
             WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
+        }
+
+        static async Task RunTestAsync(TestOptions options) 
+        {
+            var file = new FormattedFile("strings", options.InputFile);
+            await file.LoadAsync();
+
+            await file.data.strings1.strings[0].Context.Segment.ResizeAsync(10);
+            file.data.strings1.strings[0] = "hello you";
+            await file.data.strings1.strings[0].UpdateAsync();
         }
 
         static async Task RunTexturesAsync(TextureOptions options)

@@ -43,7 +43,7 @@ namespace NuXtractor
                 }
             }
 
-            data = await format.Resolve(new Context(Stream));
+            data = await format.Resolve(new Context(new Segment(Stream)));
             await data.ParseAsync();
 
             await OnLoadAsync();

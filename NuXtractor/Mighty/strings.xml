@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<type name="strings">
+  <type name="list">
+    <attr name="count" type="u4le" />
+    <attr name="strings" type="str_ascii">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (int)_self.count.Value
+      </repeat-expr>
+    </attr>
+  </type>
+  <attr name="offset1" type="u4le" />
+  <attr name="offset2" type="u4le" />
+  <attr name="strings1" type="list">
+    <pointer>_self.offset1</pointer>
+  </attr>
+  <attr name="strings2" type="list">
+    <pointer>_self.offset2</pointer>
+  </attr>
+</type>

@@ -1,0 +1,45 @@
+Header:
+| unk000      | stud_count  |
+| 09 00 00 00 | 4C 00 00 00 |
+
+Studs:
+(u1: unk001, t: type, u2: unk002, an: animation)
+| u1 | t  | u2 | Pos-X       | Pos-Y       | Pos-Z       | unk003      | extra       | unk004                  | event | an |
+| 00 | 00 | 00 | EA B1 29 C0 | EC 51 38 3D | 39 67 28 3C | 40 67 28 22 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 00 | 00 | 00 | F2 5D 06 C0 | EC 51 38 3D | C9 77 21 3C | 80 77 21 22 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 00 | 00 | 00 | F5 13 C6 BF | EC 51 38 3D | 59 88 1A 3C | 00 88 1A 22 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 00 | 00 | 00 | 0B D8 7E BF | EC 51 38 3D | E9 98 13 3C | 00 99 13 22 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 00 | 00 | 00 | 62 10 E3 BE | EC 51 38 3D | 79 A9 0C 3C | 80 A9 0C 22 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 00 | 00 | 00 | DB 42 F8 3E | EC 51 38 3D | C4 1E B6 3F | C4 1E B6 25 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | B6 C0 B9 40 | EC 51 38 3D | D4 69 1A BC | C0 69 1A A2 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | AC 01 DC 40 | EC 51 38 3D | C9 42 BA 3F | C9 42 BA 25 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | 40 0A 05 41 | EC 51 38 3D | D0 7E 38 3C | C0 7E 38 22 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | 00 00 DB 40 | EC 51 38 3D | 44 54 41 40 | 43 54 41 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | CC 04 09 41 | EC 51 38 3D | 36 6B 3E 40 | 35 6B 3E 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | F7 CC 0C 41 | EC 51 38 3D | 04 F4 4E 40 | 03 F4 4E 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | 88 E7 0B 41 | EC 51 38 3D | B3 5F 80 40 | B3 5F 80 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | 34 08 0D 41 | EC 51 38 3D | B8 7C 71 40 | B9 7C 71 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | 3C 43 08 41 | EC 51 38 3D | 6C 5C 6C 40 | 6D 5C 6C 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | 1E 9C 0B 41 | EC 51 38 3D | BC 81 94 40 | BB 81 94 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+| 01 | 00 | 00 | 98 41 0B 41 | EC 51 38 3D | A6 8A C1 40 | A5 8A C1 26 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3C |
+-----------------------------------------------------------------------------------------------------------------------------
+| 01 | 02 | FF | 02 97 99 BF | 69 BB 14 40 | 13 62 88 C0 | 00 EE FF B8 | E0 E9 83 DB | FF FF FF FF FF FF FF FF | FF FF | 1D |
+-----------------------------------------------------------------------------------------------------------------------------
+| 01 | 05 | FF | 30 8C F6 3E | 3F C4 18 3F | 25 85 F1 40 | 3C D3 7A 3E | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3D |
+| 01 | 05 | FF | 34 3E F7 BF | BC 0A CE 3F | 5C F6 37 C1 | DF 64 32 A7 | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3D |
+| 01 | 05 | FF | F5 DF DB 40 | 37 41 47 3F | F9 D3 2A C1 | 11 5B 2A A7 | 00 00 00 00 | FF FF FF FF FF FF FF FF | 01 00 | 3D |
+| 01 | 05 | FF | E1 CC DB 40 | 9B 6A 3C 3F | 77 FD 24 BC | C0 FD 24 A2 | 00 00 00 00 | FF FF FF FF FF FF FF FF | 00 00 | 3D |
+| 01 | 05 | FF | 4E 7E 11 41 | 2D 7F D3 3F | DB 7E 02 41 | 34 33 9B 3F | 00 00 00 00 | FF FF FF FF FF FF FF FF | FF FF | 3D |
+
+Types:						         	Animations:														                    Events:
+| t  | colectable type |		| an | animation type 								                    |		It is possible to make collectables apear using specific requirements. The only explored ones are the switches in negotiations_a
+| 00 | silver stud     |		| 1C | stud floats above nearest collision bellow it      |		which are "00 00" and "01 00 " in the event section
+| 01 | gold stud       |		| 1D | floating stud                                      |
+| 02 | blue stud       |		| 3C | stud floats above nearest collision bellow it      |
+| 04 | heart           |		| 3D | floating minikit (works with studs and hearts too) |
+| 05 | minikit         |
+
+Notes:
+It is possible for studs to apear in place of minikits that have already been collected, but it is unknown how to at the moment. It is possible to make more than 10 minikits apear in one area, but the upper limit is unknown.
+It is possible to add new collectables to an area by increasing the stud counter by hex 18 and inserting new data in the format above. If an error is made in your file, any stud data before the error will load and any after
+will not. If your stud count is not large enough it can cause studs to not load and you can easily make it very large to avoid doing so
