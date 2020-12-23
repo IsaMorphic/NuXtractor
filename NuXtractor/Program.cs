@@ -66,6 +66,8 @@ namespace NuXtractor
     [Verb("test", HelpText = "test")]
     class TestOptions : Options
     {
+        [Option('t', "texture-file", Required = true, HelpText = "Path to new texture file.")]
+        public string TextureFile { get; set; }
     }
 
     [Verb("all", HelpText = "Extract all data from a TT Games data container")]
@@ -182,12 +184,11 @@ namespace NuXtractor
 
         static async Task RunTestAsync(TestOptions options) 
         {
-            var file = new FormattedFile("strings", options.InputFile);
-            await file.LoadAsync();
+            var file = await OpenContainerAsync(options) as Formats.V1.LevelContainer;
 
-            await file.data.strings1.strings[0].Context.Segment.ResizeAsync(10);
-            file.data.strings1.strings[0] = "hello you";
-            await file.data.strings1.strings[0].UpdateAsync();
+            var texture = new FormattedFile("dds_texture", options.TextureFile);
+            await texture.LoadAsync();
+            await file.ResizeTexture(0, (int)texture.data.header.width.Value, (int)texture.data.header.height.Value, (int)texture.data.header.mipmapCount.Value, texture.data.Context.Stream.Length);
         }
 
         static async Task RunTexturesAsync(TextureOptions options)

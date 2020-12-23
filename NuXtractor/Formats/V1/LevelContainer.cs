@@ -14,6 +14,22 @@ namespace NuXtractor.Formats.V1
         {
         }
 
+        public async Task ResizeTexture(int id, int newWidth, int newHeight, int newLevels, long newSize)
+        {
+            var entry = data.textures.desc[id];
+            var texture = data.textures.blocks.data[id];
+
+            entry.width = newWidth;
+            entry.height = newHeight;
+            entry.levels = newLevels;
+
+            await entry.UpdateAsync();
+
+            var offset = data.textures.blocks.data[id].Context.Stream.AbsoluteOffset;
+            var newEnd = offset + newSize;
+            await texture.Context.Segment.ResizeAsync(newEnd / 4096 * 4096 + 4096 - offset);
+        }
+
         private async Task<Model> ParseModelAsync(dynamic model)
         {
             var idx = model.elements.data.indicies;
