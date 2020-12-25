@@ -27,6 +27,11 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="model_offset" type="u4le" />
     <attr name="object_offset" type="u4le" />
     <attr name="dynamic_offset" type="u4le" />
+    <attr name="unk003" type="u4le">
+      <repeat>expr</repeat>
+      <repeat-expr>6</repeat-expr>
+    </attr>
+    <attr name="end_offset" type="u4le" />
   </type>
   <type name="textures">
     <type name="header">
@@ -302,16 +307,18 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="name_offset" type="u4le" />
       <attr name="loc_offset" type="u4le" />
       <attr name="name" type="str_ascii">
-        <offset>_self.name_offset + 64</offset>
+        <pointer>_self.name_offset</pointer>
+        <offset>64</offset>
       </attr>
       <attr name="location" type="vector">
-        <offset>_self.pos_offset + 64</offset>
+        <pointer>_self.loc_offset</pointer>
+        <offset>64</offset>
       </attr>
     </type>
     <attr name="desc" type="desc">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_static.Value
+        (int)_self._parent.models.header.num_locators.Value
       </repeat-expr>
     </attr>
   </type>
@@ -413,6 +420,14 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
   </attr>
   <attr name="dynamics" type="dynamics">
     <pointer>_self.header.dynamic_offset</pointer>
+    <offset>64</offset>
+  </attr>
+  <attr name="locators" type="locators">
+    <pointer>_self.models.header.locator_offset</pointer>
+    <offset>64</offset>
+  </attr>
+  <attr name="groups" type="groups">
+    <pointer>_self.models.header.group_offset</pointer>
     <offset>64</offset>
   </attr>
 </type>

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.IO;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace NuXtractor.Formats.V1
@@ -14,7 +15,7 @@ namespace NuXtractor.Formats.V1
         {
         }
 
-        public async Task ResizeTexture(int id, int newWidth, int newHeight, int newLevels, long newSize)
+        public async Task<Stream> ResizeTexture(int id, int newWidth, int newHeight, int newLevels, long newSize)
         {
             var entry = data.textures.desc[id];
             var texture = data.textures.blocks.data[id];
@@ -25,9 +26,33 @@ namespace NuXtractor.Formats.V1
 
             await entry.UpdateAsync();
 
-            var offset = data.textures.blocks.data[id].Context.Stream.AbsoluteOffset;
+            var offset = data.textures.blocks.data[id].Context.Stream.AbsoluteOffset; 
             var newEnd = offset + newSize;
+
             await texture.Context.Segment.ResizeAsync(newEnd / 4096 * 4096 + 4096 - offset);
+
+            return data.textures.blocks.data[id].Context.Stream;
+        }
+
+        public async Task<Stream> ResizeVertexBlock(int modelId, short deltaSize)
+        {
+            var model = data.models.list.desc[modelId].model;
+            var vtxBlock = data.verticies.blocks[(int)model.vtx_block.Value - 1];
+
+            data.verticies.header.data_size += deltaSize;
+            await data.verticies.header.UpdateAsync();
+
+            vtxBlock.size += deltaSize;
+            await vtxBlock.UpdateAsync();
+
+            var offset = vtxBlock.data.Context.Stream.AbsoluteOffset;
+
+            var oldEnd = offset + vtxBlock.data.Context.Stream.Length;
+            var newEnd = offset + vtxBlock.size;
+
+            await vtxBlock.data.Context.Segment.ResizeAsync(newEnd / 16 * 16 + 16 - offset - (oldEnd / 16 * 16 + 16 - oldEnd));
+
+            return vtxBlock.data.Context.Stream;
         }
 
         private async Task<Model> ParseModelAsync(dynamic model)

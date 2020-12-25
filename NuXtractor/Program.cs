@@ -186,9 +186,16 @@ namespace NuXtractor
         {
             var file = await OpenContainerAsync(options) as Formats.V1.LevelContainer;
 
+            // Texture resizing/injection
             var texture = new FormattedFile("dds_texture", options.TextureFile);
             await texture.LoadAsync();
-            await file.ResizeTexture(0, (int)texture.data.header.width.Value, (int)texture.data.header.height.Value, (int)texture.data.header.mipmapCount.Value, texture.data.Context.Stream.Length);
+
+            var textureStream = await file.ResizeTexture(0, (int)texture.data.header.width.Value, (int)texture.data.header.height.Value, (int)texture.data.header.mipmapCount.Value, texture.data.Context.Stream.Length);
+            texture.Stream.Seek(0, SeekOrigin.Begin);
+            await texture.Stream.CopyToAsync(textureStream);
+
+            // Vertex data resizing
+            var vtxStream = await file.ResizeVertexBlock(0, 1024);
         }
 
         static async Task RunTexturesAsync(TextureOptions options)
