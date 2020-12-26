@@ -160,14 +160,6 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     </type>
     <type name="model">
       <type name="elements">
-        <type name="data">
-          <attr name="indicies" type="u2le">
-            <repeat>expr</repeat>
-            <repeat-expr>
-              (int)_self._parent.count.Value
-            </repeat-expr>
-          </attr>
-        </type>
         <attr name="unk000" type="u4le">
           <repeat>expr</repeat>
           <repeat-expr>2</repeat-expr>
@@ -175,9 +167,10 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         <attr name="count" type="u2le" />
         <attr name="unk001" type="u2le" />
         <attr name="data_offset" type="u4le" />
-        <attr name="data" type="data">
+        <attr name="data">
           <pointer>_self.data_offset</pointer>
           <offset>64</offset>
+          <size>_self.count * 2</size>
         </attr>
       </type>
       <attr name="next_offset" type="u4le" />

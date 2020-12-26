@@ -196,6 +196,7 @@ namespace NuXtractor
 
             // Vertex data resizing
             var vtxStream = await file.ResizeVertexBlock(0, 1024);
+            var elemStream = await file.ResizeElementArray(0, 1024);
         }
 
         static async Task RunTexturesAsync(TextureOptions options)

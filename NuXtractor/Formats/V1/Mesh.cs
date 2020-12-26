@@ -9,27 +9,27 @@ namespace NuXtractor.Formats.V1
 
     public class Mesh : Model
     {
-        private int[] Indicies { get; }
-        private VertexStream Stream { get; }
+        private ElementStream ElemStream { get; }
+        private VertexStream VtxStream { get; }
 
         private UVCoord[] CachedUVs { get; set; }
         private Vertex[] CachedVerticies { get; set; }
         private Face[] CachedFaces { get; set; }
 
-        public Mesh(Model next, Material material, int[] indicies, VertexStream stream) : base(next, material)
+        public Mesh(Model next, Material material, ElementStream elemStream, VertexStream vtxStream) : base(next, material)
         {
-            Indicies = indicies;
-            Stream = stream;
+            ElemStream = elemStream;
+            VtxStream = vtxStream;
         }
 
         public override async Task<UVCoord[]> GetUVsAsync()
         {
             if (CachedUVs != null) return CachedUVs;
 
-            var uArr = await Stream.GetAttributeArray(VertexAttribute.U);
-            var vArr = await Stream.GetAttributeArray(VertexAttribute.V);
+            var uArr = await VtxStream.GetAttributeArray(VertexAttribute.U);
+            var vArr = await VtxStream.GetAttributeArray(VertexAttribute.V);
 
-            var uvArr = new UVCoord[Stream.Length];
+            var uvArr = new UVCoord[VtxStream.Count];
 
             for (int i = 0; i < uvArr.Length; i++)
             {
@@ -48,15 +48,15 @@ namespace NuXtractor.Formats.V1
         {
             if (CachedVerticies != null) return CachedVerticies;
 
-            var xArr = await Stream.GetAttributeArray(VertexAttribute.X);
-            var yArr = await Stream.GetAttributeArray(VertexAttribute.Y);
-            var zArr = await Stream.GetAttributeArray(VertexAttribute.Z);
+            var xArr = await VtxStream.GetAttributeArray(VertexAttribute.X);
+            var yArr = await VtxStream.GetAttributeArray(VertexAttribute.Y);
+            var zArr = await VtxStream.GetAttributeArray(VertexAttribute.Z);
 
-            var cArr = await Stream.GetAttributeArray(VertexAttribute.Color);
+            var cArr = await VtxStream.GetAttributeArray(VertexAttribute.Color);
 
             var uvArr = await GetUVsAsync();
 
-            var vtxArr = new Vertex[Stream.Length];
+            var vtxArr = new Vertex[VtxStream.Count];
 
             for (int i = 0; i < vtxArr.Length; i++)
             {
@@ -87,7 +87,7 @@ namespace NuXtractor.Formats.V1
 
         public override Task<int[]> GetIndiciesAsync()
         {
-            return Task.FromResult(Indicies);
+            return ElemStream.ReadElementsAsync();
         }
 
         public override async Task<Face[]> GetFacesAsync()

@@ -20,27 +20,27 @@ namespace NuXtractor.Formats.V1
     {
         private const uint STRIDE = 32;
 
-        private static ISerializer<int> Words { get; } =
+        private static ISerializer<int> DWords { get; } =
             new SInt32Serializer(Endianness.LittleEndian);
 
         private Stream Stream { get; }
 
-        public int Length { get; }
+        public int Count { get; }
 
         public VertexStream(Stream stream)
         {
             Stream = stream;
-            Length = (int)(Stream.Length / (STRIDE + 4));
+            Count = (int)(Stream.Length / (STRIDE + 4));
         }
 
         public async Task<int[]> GetAttributeArray(VertexAttribute attr)
         {
-            var attrs = new int[Length];
+            var attrs = new int[Count];
 
             Stream.Seek((long)attr, SeekOrigin.Begin);
             for (int i = 0; i < attrs.Length; i++)
             {
-                attrs[i] = await Words.ReadFromStreamAsync(Stream);
+                attrs[i] = await DWords.ReadFromStreamAsync(Stream);
                 Stream.Seek(STRIDE, SeekOrigin.Current);
             }
 

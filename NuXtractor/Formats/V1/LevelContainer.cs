@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using MightyStruct;
+
+using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -26,12 +28,12 @@ namespace NuXtractor.Formats.V1
 
             await entry.UpdateAsync();
 
-            var offset = data.textures.blocks.data[id].Context.Stream.AbsoluteOffset; 
+            var offset = texture.Context.Stream.AbsoluteOffset;
             var newEnd = offset + newSize;
 
             await texture.Context.Segment.ResizeAsync(newEnd / 4096 * 4096 + 4096 - offset);
 
-            return data.textures.blocks.data[id].Context.Stream;
+            return data.textures.blocks.data[id];
         }
 
         public async Task<Stream> ResizeVertexBlock(int modelId, short deltaSize)
@@ -52,19 +54,28 @@ namespace NuXtractor.Formats.V1
 
             await vtxBlock.data.Context.Segment.ResizeAsync(newEnd / 16 * 16 + 16 - offset - (oldEnd / 16 * 16 + 16 - oldEnd));
 
-            return vtxBlock.data.Context.Stream;
+            return vtxBlock.data;
+        }
+
+        public async Task<Stream> ResizeElementArray(int modelId, short deltaSize)
+        {
+            var elements = data.models.list.desc[modelId].model.elements;
+
+            elements.count += deltaSize / 2;
+            await elements.UpdateAsync();
+
+            Stream stream = elements.data;
+
+            await elements.data.Context.Segment.ResizeAsync(stream.Length + deltaSize);
+
+            return stream;
         }
 
         private async Task<Model> ParseModelAsync(dynamic model)
         {
-            var idx = model.elements.data.indicies;
+            var elemStream = new ElementStream(model.elements.data);
+            var vtxStream = new VertexStream(data.verticies.blocks[(int)model.vtx_block - 1].data);
 
-            int[] indicies = new int[idx.size];
-            for (int i = 0; i < indicies.Length; i++)
-            {
-                indicies[i] = idx[i];
-            }
-            var stream = new VertexStream(data.verticies.blocks[(int)model.vtx_block - 1].data);
             var material = await GetMaterialAsync((int)model.material);
 
             Model next = null;
@@ -80,7 +91,7 @@ namespace NuXtractor.Formats.V1
                 }
             }
 
-            return new Mesh(next, material, indicies, stream);
+            return new Mesh(next, material, elemStream, vtxStream);
         }
 
         protected override async Task<Model> GetNewModelAsync(int id)
