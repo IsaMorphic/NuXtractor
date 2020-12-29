@@ -1,4 +1,7 @@
-﻿using MightyStruct;
+﻿using NuXtractor.Materials;
+using NuXtractor.Models;
+using NuXtractor.Scenes;
+using NuXtractor.Textures;
 
 using System.IO;
 using System.Numerics;
@@ -6,11 +9,6 @@ using System.Threading.Tasks;
 
 namespace NuXtractor.Formats.V1
 {
-    using Scenes;
-    using Models;
-    using Materials;
-    using Textures;
-
     public abstract class LevelContainer : Container, ISceneContainer
     {
         protected LevelContainer(string format, string path) : base(format, path)
@@ -78,7 +76,7 @@ namespace NuXtractor.Formats.V1
 
             var material = await GetMaterialAsync((int)model.material);
 
-            Model next = null;
+            Mesh next = null;
             long offset = (long)model.next_offset;
             if (model.next != null)
             {
@@ -91,7 +89,7 @@ namespace NuXtractor.Formats.V1
                 }
             }
 
-            return new Mesh(next, material, elemStream, vtxStream);
+            return new Mesh(material, next, elemStream, vtxStream);
         }
 
         protected override async Task<Model> GetNewModelAsync(int id)

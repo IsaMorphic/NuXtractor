@@ -1,47 +1,28 @@
-﻿using System;
+﻿using NuXtractor.Materials;
+using NuXtractor.Models;
+
+using System;
+using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 
 namespace NuXtractor.Formats.V1
 {
-    using Materials;
-    using Models;
-
     public class Mesh : Model
     {
+        public Mesh Next { get; }
+
         private ElementStream ElemStream { get; }
         private VertexStream VtxStream { get; }
 
-        private UVCoord[] CachedUVs { get; set; }
         private Vertex[] CachedVerticies { get; set; }
-        private Face[] CachedFaces { get; set; }
+        private Triangle[] CachedTris { get; set; }
 
-        public Mesh(Model next, Material material, ElementStream elemStream, VertexStream vtxStream) : base(next, material)
+        public Mesh(Material material, Mesh next, ElementStream elemStream, VertexStream vtxStream) : base(material)
         {
+            Next = next;
             ElemStream = elemStream;
             VtxStream = vtxStream;
-        }
-
-        public override async Task<UVCoord[]> GetUVsAsync()
-        {
-            if (CachedUVs != null) return CachedUVs;
-
-            var uArr = await VtxStream.GetAttributeArray(VertexAttribute.U);
-            var vArr = await VtxStream.GetAttributeArray(VertexAttribute.V);
-
-            var uvArr = new UVCoord[VtxStream.Count];
-
-            for (int i = 0; i < uvArr.Length; i++)
-            {
-                var u = BitConverter.Int32BitsToSingle(uArr[i]);
-                var v = BitConverter.Int32BitsToSingle(vArr[i]);
-
-                uvArr[i] = new UVCoord(i, u, 1 - v);
-            }
-
-            CachedUVs = uvArr;
-
-            return uvArr;
         }
 
         public override async Task<Vertex[]> GetVerticesAsync()
@@ -52,9 +33,10 @@ namespace NuXtractor.Formats.V1
             var yArr = await VtxStream.GetAttributeArray(VertexAttribute.Y);
             var zArr = await VtxStream.GetAttributeArray(VertexAttribute.Z);
 
-            var cArr = await VtxStream.GetAttributeArray(VertexAttribute.Color);
+            var uArr = await VtxStream.GetAttributeArray(VertexAttribute.U);
+            var vArr = await VtxStream.GetAttributeArray(VertexAttribute.V);
 
-            var uvArr = await GetUVsAsync();
+            var cArr = await VtxStream.GetAttributeArray(VertexAttribute.Color);
 
             var vtxArr = new Vertex[VtxStream.Count];
 
@@ -64,8 +46,11 @@ namespace NuXtractor.Formats.V1
                 var y = BitConverter.Int32BitsToSingle(yArr[i]);
                 var z = BitConverter.Int32BitsToSingle(zArr[i]);
 
-                var xyz = new Vector3(x, y, z);
-                var uv = uvArr[i];
+                var u = BitConverter.Int32BitsToSingle(uArr[i]);
+                var v = BitConverter.Int32BitsToSingle(vArr[i]);
+
+                var pos = new Vector3(x, y, z);
+                var tex = new Vector2(u, v);
 
                 var c = BitConverter.GetBytes(cArr[i]);
 
@@ -77,36 +62,38 @@ namespace NuXtractor.Formats.V1
 
                 var color = new Color(r, g, b, a);
 
-                vtxArr[i] = new Vertex(i, xyz, uv, color);
+                vtxArr[i] = new Vertex(pos, tex, color);
             }
 
             CachedVerticies = vtxArr;
-
             return vtxArr;
         }
 
-        public override Task<int[]> GetIndiciesAsync()
+        public Task<int[]> GetIndiciesAsync()
         {
             return ElemStream.ReadElementsAsync();
         }
 
-        public override async Task<Face[]> GetFacesAsync()
+        public override async Task<Triangle[]> GetTrianglesAsync()
         {
-            if (CachedFaces != null) return CachedFaces;
+            if (CachedTris != null) return CachedTris;
 
-            var vtxArr = await GetVerticesAsync();
             var idxArr = await GetIndiciesAsync();
+            Triangle[] tris = new Triangle[idxArr.Length - 2];
 
-            Face[] faceArr = new Face[idxArr.Length - 2];
-
-            for (int i = 0; i < faceArr.Length; i++)
+            for (int i = 0; i < tris.Length; i++)
             {
-                faceArr[i] = new Face(i, vtxArr[idxArr[i + i % 2]], vtxArr[idxArr[i - i % 2 + 1]], vtxArr[idxArr[i + 2]]);
+                tris[i] = new Triangle(idxArr[i + i % 2], idxArr[i - i % 2 + 1], idxArr[i + 2]);
             }
 
-            CachedFaces = faceArr;
+            CachedTris = tris;
+            return tris;
+        }
 
-            return faceArr;
+        public override async Task WriteToOBJAsync(StreamWriter writer, Matrix4x4? transform = null)
+        {
+            await base.WriteToOBJAsync(writer, transform);
+            await Next.WriteToOBJAsync(writer, transform);
         }
     }
 }

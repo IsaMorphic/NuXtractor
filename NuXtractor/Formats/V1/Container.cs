@@ -16,7 +16,7 @@ namespace NuXtractor.Formats.V1
         public Model[] CachedModels { get; private set; }
         public int ModelCount => data.models.list.desc.size;
 
-        public Dictionary<long, Model> CachedSubModels { get; private set; }
+        public Dictionary<long, Mesh> CachedSubModels { get; private set; }
 
         public Material[] CachedMaterials { get; private set; }
         public int MaterialCount => data.materials.desc.size;
@@ -27,7 +27,7 @@ namespace NuXtractor.Formats.V1
         protected override Task OnLoadAsync()
         {
             CachedModels = new Model[ModelCount];
-            CachedSubModels = new Dictionary<long, Model>();
+            CachedSubModels = new Dictionary<long, Mesh>();
 
             CachedMaterials = new Material[MaterialCount];
 

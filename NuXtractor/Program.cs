@@ -17,12 +17,15 @@
  */
 
 using CommandLine;
+
 using NuXtractor.Converters;
 using NuXtractor.Models;
 using NuXtractor.Scenes;
 using NuXtractor.Textures;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -68,6 +71,12 @@ namespace NuXtractor
     {
         [Option('t', "texture-file", Required = true, HelpText = "Path to new texture file.")]
         public string TextureFile { get; set; }
+
+        [Option('m', "model-file", Required = true, HelpText = "Path to input obj model file.")]
+        public string ModelFile { get; set; }
+
+        [Option('o', "output-file", Required = true, HelpText = "Path to stripped output obj model file.")]
+        public string OutputFile { get; set; }
     }
 
     [Verb("all", HelpText = "Extract all data from a TT Games data container")]
@@ -184,6 +193,20 @@ namespace NuXtractor
 
         static async Task RunTestAsync(TestOptions options) 
         {
+            var obj = new OBJMesh(File.OpenText(options.ModelFile));
+            await obj.ParseAsync();
+
+            using (var writer = File.CreateText(options.OutputFile))
+            {
+                int idx = 0;
+                writer.AutoFlush = true;
+                foreach (var strip in await obj.ToTriangleStripsAsync())
+                {
+                    await writer.WriteLineAsync($"o strip_{idx++}");
+                    await strip.WriteToOBJAsync(writer);
+                }
+            }
+
             var file = await OpenContainerAsync(options) as Formats.V1.LevelContainer;
 
             // Texture resizing/injection

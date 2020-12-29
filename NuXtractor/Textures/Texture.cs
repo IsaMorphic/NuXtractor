@@ -18,8 +18,10 @@
 
 using MightyStruct;
 using MightyStruct.Serializers;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+
 using System;
 using System.IO;
 using System.Threading.Tasks;
