@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  -->
-<type name="nux_v1">
+<type name="nup_v1">
   <type name="file_header">
     <attr name="unk000" type="u4le" />
     <attr name="string_offset" type="u4le" />
@@ -72,7 +72,7 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       </type>
       <attr name="unk000" type="u4le">
         <repeat>expr</repeat>
-        <repeat-expr>20</repeat-expr>
+        <repeat-expr>21</repeat-expr>
       </attr>
       <attr name="color" type="color" />
       <attr name="unk001" type="u4le">

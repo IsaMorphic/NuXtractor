@@ -1,7 +1,8 @@
 ﻿using MightyStruct.Serializers;
-using NuXtractor.Textures.DXT;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+
 using System;
 using System.IO;
 using System.Text;
@@ -9,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
+    using DXT;
+
     public enum DXTType
     {
         DXT1,
@@ -65,18 +68,18 @@ namespace NuXtractor.Textures
     {
         private DXT1Texture Inner { get; }
 
-        public DDSTexture(DDSInfo info, Stream stream) : base(info.Width, info.Height, info.Levels, stream)
+        public DDSTexture(int id, DDSInfo info, Stream stream) : base(id, info.Width, info.Height, info.Levels, stream)
         {
             switch (info.PixelFormat)
             {
                 case DXTType.DXT1:
-                    Inner = new DXT1Texture(Width, Height, Levels, Endianness.LittleEndian, info.Stream);
+                    Inner = new DXT1Texture(Id, Width, Height, Levels, Endianness.LittleEndian, info.Stream);
                     break;
                 case DXTType.DXT3:
-                    Inner = new DXT3Texture(Width, Height, Levels, Endianness.LittleEndian, info.Stream);
+                    Inner = new DXT3Texture(Id, Width, Height, Levels, Endianness.LittleEndian, info.Stream);
                     break;
                 case DXTType.DXT5:
-                    Inner = new DXT5Texture(Width, Height, Levels, Endianness.LittleEndian, info.Stream);
+                    Inner = new DXT5Texture(Id, Width, Height, Levels, Endianness.LittleEndian, info.Stream);
                     break;
             }
         }

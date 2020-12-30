@@ -38,7 +38,7 @@ namespace NuXtractor.Textures.DXT
         protected ISerializer<ushort> Words { get; }
         protected PixelBlender<RgbaVector> Pixels { get; }
 
-        public DXT1Texture(int width, int height, int levels, Endianness endianness, Stream stream) : base(width, height, levels, stream)
+        public DXT1Texture(int id, int width, int height, int levels, Endianness endianness, Stream stream) : base(id, width, height, levels, stream)
         {
             Endianness = endianness;
 

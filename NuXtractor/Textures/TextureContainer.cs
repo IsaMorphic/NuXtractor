@@ -16,13 +16,13 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
-    public interface ITextureContainer<T> where T : Texture
+    public interface ITextureContainer
     {
-        Task<List<Texture>> GetTexturesAsync();
+        int TextureCount { get; }
+        Task<Texture> GetTextureAsync(int id);
     }
 }

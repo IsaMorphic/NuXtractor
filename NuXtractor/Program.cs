@@ -17,13 +17,12 @@
  */
 
 using CommandLine;
-using NuXtractor.Formats;
+using NuXtractor.Models;
+using NuXtractor.Scenes;
 using NuXtractor.Textures;
-using NuXtractor.Textures.DXT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -31,19 +30,11 @@ namespace NuXtractor
 {
     enum FileFormat
     {
-        CSCgc,
-        GSCps2,
+        NUXv0,
         NUXv1,
-        NUXv2,
+        NUPv1,
+        HGPv1,
         HGXv1
-    }
-
-    enum TextureFormat
-    {
-        DDS,
-        DXTn,
-        CTX,
-        PNT,
     }
 
     enum ExtractionMode
@@ -67,12 +58,23 @@ namespace NuXtractor
         [Option('i', "input-file", Required = true, HelpText = "Path to the input file.")]
         public string InputFile { get; set; }
 
-        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be CSCgc, GSCps2, NUXv1, NUXv2 or HGXv1")]
+        [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be NUXv0, NUXv1 or NUPv1")]
         public FileFormat FileFormat { get; set; }
+    }
 
-        [Option('t', "texture-format", Required = true, HelpText = "The format of the textures contained in the input file.  Can be DDS, DXTn, CTX, or PNT")]
-        public TextureFormat TextureFormat { get; set; }
+    [Verb("all", HelpText = "Extract all data from a TT Games data container")]
+    class SceneOptions : Options
+    {
+    }
 
+    [Verb("models", HelpText = "Extract model data from a TT Games data container")]
+    class ModelOptions : Options
+    {
+    }
+
+    [Verb("textures", HelpText = "Extract and inject textures into and from a TT Games data container.")]
+    class TextureOptions : Options
+    {
         [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be DUMP, CONV(ert), INJ(ect)C(onvert), or INJ(ect)D(ump).")]
         public ExtractionMode Mode { get; set; }
 
@@ -84,8 +86,14 @@ namespace NuXtractor
     {
         static async Task Main(string[] args)
         {
-            await Parser.Default.ParseArguments<Options>(args)
-                .MapResult(opts => RunAsync(opts), err => Task.CompletedTask);
+            await Parser.Default
+                .ParseArguments<TextureOptions, ModelOptions, SceneOptions>(args)
+                .MapResult(
+                    (TextureOptions opts) => RunTexturesAsync(opts),
+                    (ModelOptions opts) => RunModelsAsync(opts),
+                    (SceneOptions opts) => RunAllAsync(opts),
+                    err => Task.CompletedTask
+                    );
         }
 
         static void WriteLine(string str = "", OutputImportance type = OutputImportance.Important)
@@ -109,12 +117,12 @@ namespace NuXtractor
             Console.ResetColor();
         }
 
-        static async Task RunAsync(Options options)
+        static async Task<FormattedFile> OpenContainerAsync(Options options)
         {
             if (!File.Exists(options.InputFile))
             {
                 WriteLine("Error: The specified input file does not exist. Check any paths or filenames to make sure they are correct.", OutputImportance.Error);
-                return;
+                return null;
             }
 
             FormattedFile file = null;
@@ -122,61 +130,149 @@ namespace NuXtractor
             {
                 switch (options.FileFormat)
                 {
+                    case FileFormat.NUXv0:
+                        file = new Formats.V1.NUXContainer("nux_v0", options.InputFile);
+                        break;
                     case FileFormat.NUXv1:
-                        file = new ContainerV1("nux_v1", options.InputFile);
+                        file = new Formats.V1.NUXContainer("nux_v1", options.InputFile);
+                        break;
+                    case FileFormat.NUPv1:
+                        file = new Formats.V1.NUPContainer("nup_v1", options.InputFile);
+                        break;
+                    case FileFormat.HGPv1:
+                        file = new Formats.V1.HGPContainer(options.InputFile);
                         break;
                     case FileFormat.HGXv1:
-                        file = new ContainerV1("hgx_v1", options.InputFile);
+                        file = new Formats.V1.HGXContainer(options.InputFile);
                         break;
                 }
+
                 await file.LoadAsync();
+                return file;
             }
             catch (Exception)
             {
                 WriteLine("Error: The input file could not be parsed in the chosen format.", OutputImportance.Error);
-                return;
+                throw;
             }
+        }
 
-            List<Texture> textures = null;
-            try
+        static void Goodbye()
+        {
+            WriteLine("Thanks for using NuXtractor, a tool created by Yodadude2003.", OutputImportance.Highlight);
+            WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
+            WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
+            WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
+        }
+
+        static async Task RunTexturesAsync(TextureOptions options)
+        {
+            var file = await OpenContainerAsync(options) as ITextureContainer;
+            await ProcessTexturesAsync(options, file);
+            Goodbye();
+        }
+
+        static async Task RunModelsAsync(ModelOptions options)
+        {
+            var file = await OpenContainerAsync(options) as IModelContainer;
+            await ProcessModelsAsync(options, file);
+            Goodbye();
+        }
+
+        static async Task RunAllAsync(SceneOptions options)
+        {
+            var file = await OpenContainerAsync(options) as ISceneContainer;
+            var scene = await file.GetSceneAsync();
+
+            string dir = options.InputFile + ".extracted";
+            Directory.CreateDirectory(dir);
+
+            var mtlPath = Path.Combine(dir, "materials.mtl");
+
+            using (var writer = File.CreateText(mtlPath))
             {
-
-                switch (options.TextureFormat)
+                writer.AutoFlush = true;
+                foreach (var material in scene.Materials)
                 {
-                    case TextureFormat.DXTn:
-                        textures = await (file as ITextureContainer<DXT1Texture>).GetTexturesAsync();
-                        break;
-                    case TextureFormat.DDS:
-                        textures = await (file as ITextureContainer<DDSTexture>).GetTexturesAsync();
-                        break;
+                    WriteLine($"Extracting material with id: {material.Id}...");
+                    await material.WriteToMTLAsync(writer);
+                    WriteLine($"Wrote material with id: {material.Id} to {mtlPath}.", OutputImportance.Verbose);
                 }
             }
-            catch (Exception)
+
+            var texDir = Path.Combine(dir, "textures");
+            Directory.CreateDirectory(texDir);
+
+            foreach (var texture in scene.Textures)
             {
-                WriteLine("Error: The input file does not support the specified texture format.", OutputImportance.Error);
-                return;
+                WriteLine($"Extracting texture with id: {texture.Id}...");
+                var image = await texture.ReadImageAsync();
+
+                var texPath = Path.Combine(texDir, $"texture_{texture.Id}.png");
+                await image.SaveAsPngAsync(texPath);
+
+                WriteLine($"Wrote texture with id: {texture.Id} to {texPath}.", OutputImportance.Verbose);
             }
 
+            var objPath = Path.Combine(dir, "scene.obj");
+            using (var writer = File.CreateText(objPath))
+            {
+                writer.AutoFlush = true;
+
+                await writer.WriteLineAsync("mtllib .\\materials.mtl");
+
+                foreach (var obj in scene.Objects)
+                {
+                    WriteLine($"Extracting object with name: {obj.Name}...");
+                    await obj.WriteToOBJAsync(writer);
+                    WriteLine($"Wrote object with name: {obj.Name} to {objPath}.", OutputImportance.Verbose);
+                }
+            }
+
+            Goodbye();
+        }
+
+        static async Task ProcessModelsAsync(ModelOptions options, IModelContainer container)
+        {
+            string dir = options.InputFile + ".models";
+            Directory.CreateDirectory(dir);
+
+            for (int i = 0; i < container.ModelCount; i++)
+            {
+                var model = await container.GetModelAsync(i);
+                WriteLine($"Found model #{i}; Extracting to OBJ...");
+
+                string filePath = Path.Combine(dir, $"model_{i}.obj");
+                using (var writer = File.CreateText(filePath))
+                {
+                    await model.WriteToOBJAsync(writer);
+                }
+
+                WriteLine($"Conversion successful! Wrote output to file: {filePath}", OutputImportance.Verbose);
+            }
+        }
+
+        static async Task ProcessTexturesAsync(TextureOptions options, ITextureContainer container)
+        {
             string dir = options.InputFile + ".textures";
             Directory.CreateDirectory(dir);
 
-
             Stream patchFile = Stream.Null;
 
-            if(options.WritePatch && (options.Mode == ExtractionMode.INJC || options.Mode == ExtractionMode.INJD))
+            if (options.WritePatch && (options.Mode == ExtractionMode.INJC || options.Mode == ExtractionMode.INJD))
                 patchFile = File.Create(options.InputFile + ".patch");
-            
+
             // Start reading textures one by one
-            for (int i = 0; i < textures.Count; i++)
+            for (int i = 0; i < container.TextureCount; i++)
             {
-                using (var texture = textures[i])
+                using (var texture = await container.GetTextureAsync(i))
                 {
                     switch (options.Mode)
                     {
                         case ExtractionMode.DUMP:
                             try
                             {
-                                string dumpPath = Path.Combine(dir, $"texture_{i}.{options.TextureFormat}");
+                                string dumpPath = Path.Combine(dir, $"texture_{i}.bin");
                                 WriteLine($"Found texture #{i}; Dumping to file...");
 
                                 using (var stream = File.Create(dumpPath))
@@ -213,7 +309,7 @@ namespace NuXtractor
                         case ExtractionMode.INJD:
                             try
                             {
-                                string injdPath = Path.Combine(dir, $"texture_{i}.{options.TextureFormat}");
+                                string injdPath = Path.Combine(dir, $"texture_{i}.bin");
                                 if (File.Exists(injdPath))
                                 {
                                     WriteLine($"Found replacement file {injdPath}; Injecting raw texture data...");
@@ -263,11 +359,6 @@ namespace NuXtractor
             }
 
             patchFile.Dispose();
-
-            WriteLine("Thanks for using NuXtractor, a tool created by Yodadude2003.", OutputImportance.Highlight);
-            WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
-            WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
-            WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
         }
     }
 }

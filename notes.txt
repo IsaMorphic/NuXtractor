@@ -1,0 +1,10 @@
+base: 08CEA040
+matrix: 08D05228
+
+LegoStarwars.exe+148133 - mov ecx,[ebp+48] <- ebp+48 is address to intial pointer, value at ebp+4C is array length
+LegoStarwars.exe+148136 - mov edx,[ecx+edi*4] <- edi is index in pointer array
+LegoStarwars.exe+148139 - mov edx,[edx+0C] <- first offset: 0C, second level search length is specified at edx+08
+LegoStarwars.exe+14813C - mov edx,[edx+esi*4] <- esi is second level index
+LegoStarwars.exe+14813F - mov edx,[edx+08] <- second offset: 08, third level search length is specified at edx
+LegoStarwars.exe+148142 - mov edx,[edx+eax*4] <- eax is third level index
+LegoStarwars.exe+148145 - cmp dword ptr [edx+04],00 <- third offset: 04 (is sometimes null)
