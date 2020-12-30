@@ -18,6 +18,8 @@
 
 using MightyStruct.Serializers;
 
+using NuXtractor.Textures.DXT;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -28,8 +30,6 @@ using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
-    using DXT;
-
     public enum DXTType
     {
         DXT1,
@@ -56,10 +56,10 @@ namespace NuXtractor.Textures
         {
             var header = data.header;
 
-            Width = (int)header.width;
-            Height = (int)header.height;
+            Width = (int)header.width.Value;
+            Height = (int)header.height.Value;
 
-            Levels = (int)header.mipmapCount;
+            Levels = (int)header.mipmapCount.Value;
 
             var ccBytes = BitConverter.GetBytes(header.pixelFormat.fourCC);
             var ccCode = Encoding.ASCII.GetString(ccBytes);

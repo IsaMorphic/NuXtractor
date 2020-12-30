@@ -16,15 +16,15 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using NuXtractor.Materials;
+using NuXtractor.Models;
+using NuXtractor.Textures;
+
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NuXtractor.Scenes
 {
-    using Materials;
-    using Models;
-    using Textures;
-
     public class Scene
     {
         public List<SceneObject> Objects { get; }

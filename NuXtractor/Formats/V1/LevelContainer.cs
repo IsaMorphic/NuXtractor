@@ -1,4 +1,22 @@
-﻿using NuXtractor.Materials;
+﻿/*
+ *  Copyright 2020 Chosen Few Software
+ *  This file is part of NuXtractor.
+ *
+ *  NuXtractor is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NuXtractor is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+using NuXtractor.Materials;
 using NuXtractor.Models;
 using NuXtractor.Scenes;
 using NuXtractor.Textures;
@@ -72,12 +90,12 @@ namespace NuXtractor.Formats.V1
         private async Task<Model> ParseModelAsync(dynamic model)
         {
             var elemStream = new ElementStream(model.elements.data);
-            var vtxStream = new VertexStream(data.verticies.blocks[(int)model.vtx_block - 1].data);
+            var vtxStream = new VertexStream(data.verticies.blocks[(int)model.vtx_block.Value - 1].data);
 
-            var material = await GetMaterialAsync((int)model.material);
+            var material = await GetMaterialAsync((int)model.material.Value);
 
             Mesh next = null;
-            long offset = (long)model.next_offset;
+            long offset = (long)model.next_offset.Value;
             if (model.next != null)
             {
                 if (CachedSubModels.ContainsKey(offset))

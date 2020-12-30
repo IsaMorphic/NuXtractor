@@ -46,26 +46,30 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="type" type="u4le" />
       <attr name="offset" type="u4le" />
     </type>
+    <type name="blocks">
+      <attr name="data">
+        <pointer>_self._parent.desc[_index].offset</pointer>
+        <base>_self</base>
+        <size>
+          (_index &lt; _self._parent.desc.size - 1) ? _self._parent.desc[_index + 1].offset - _self._parent.desc[_index].offset : _self._parent.header.last_offset - _self._parent.desc[_index].offset
+        </size>
+        <repeat>expr</repeat>
+        <repeat-expr>
+          (int)_self._parent.header.count.Value
+        </repeat-expr>
+      </attr>
+    </type>
     <attr name="header" type="header" />
     <attr name="desc" type="desc">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self.header.count
+        (int)_self.header.count.Value
       </repeat-expr>
     </attr>
-    <attr name="padding">
-      <size>
-        _self.header.data_offset - _self.header.count * 20
-      </size>
-    </attr>
-    <attr name="data">
-      <size>
-        (_index &lt; _self.desc.size - 1) ? _self.desc[_index + 1].offset - _self.desc[_index].offset : _self.header.last_offset - _self.desc[_index].offset
-      </size>
-      <repeat>expr</repeat>
-      <repeat-expr>
-        (int)_self.header.count
-      </repeat-expr>
+    <attr name="blocks" type="blocks">
+      <pointer>_self.header.data_offset</pointer>
+      <base>_self</base>
+      <offset>12</offset>
     </attr>
   </type>
   <type name="materials">
@@ -91,14 +95,15 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="offsets" type="u4le">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self.count
+        (int)_self.count.Value
       </repeat-expr>
     </attr>
     <attr name="desc" type="material">
-      <offset>_self.offsets[_index] + 64</offset>
+      <pointer>_self.offsets[_index]</pointer>
+      <offset>64</offset>
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self.count
+        (int)_self.count.Value
       </repeat-expr>
     </attr>
   </type>
@@ -113,7 +118,8 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="index" type="u4le" />
       <attr name="offset" type="u4le" />
       <attr name="data">
-        <offset>_self._parent._parent.header.vertex_offset + _self.offset + 64</offset>
+        <pointer>_self.offset</pointer>
+        <base>_self._parent</base>
         <size>_self.size</size>
       </attr>
     </type>
@@ -121,7 +127,7 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="blocks" type="block">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self.header.num_entries
+        (int)_self.header.num_entries.Value
       </repeat-expr>
     </attr>
   </type>
@@ -154,14 +160,6 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     </type>
     <type name="model">
       <type name="elements">
-        <type name="data">
-          <attr name="indicies" type="u2le">
-            <repeat>expr</repeat>
-            <repeat-expr>
-              (int)_self._parent.count
-            </repeat-expr>
-          </attr>
-        </type>
         <attr name="unk000" type="u4le">
           <repeat>expr</repeat>
           <repeat-expr>2</repeat-expr>
@@ -169,14 +167,17 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         <attr name="count" type="u2le" />
         <attr name="unk001" type="u2le" />
         <attr name="data_offset" type="u4le" />
-        <attr name="data" type="data">
-          <offset>_self.data_offset + 64</offset>
+        <attr name="data">
+          <pointer>_self.data_offset</pointer>
+          <offset>64</offset>
+          <size>_self.count * 2</size>
         </attr>
       </type>
       <attr name="next_offset" type="u4le" />
       <attr name="next" type="model">
         <if>_self.next_offset != 0</if>
-        <offset>_self.next_offset + 64</offset>
+        <pointer>_self.next_offset</pointer>
+        <offset>64</offset>
       </attr>
       <attr name="unk000" type="u4le" />
       <attr name="material" type="u4le" />
@@ -192,7 +193,8 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       </attr>
       <attr name="elem_offset" type="u4le" />
       <attr name="elements" type="elements">
-        <offset>_self.elem_offset + 64</offset>
+        <pointer>_self.elem_offset</pointer>
+        <offset>64</offset>
       </attr>
     </type>
     <type name="desc">
@@ -202,27 +204,30 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       </attr>
       <attr name="offset" type="u4le" />
       <attr name="model" type="model">
-        <offset>_self.offset + 64</offset>
+        <pointer>_self.offset</pointer>
+        <offset>64</offset>
       </attr>
     </type>
     <type name="list">
       <attr name="offsets" type="u4le">
         <repeat>expr</repeat>
         <repeat-expr>
-          (int)_self._parent.header.num_models
+          (int)_self._parent.header.num_models.Value
         </repeat-expr>
       </attr>
       <attr name="desc" type="desc">
-        <offset>_self.offsets[_index] + 64</offset>
+        <pointer>_self.offsets[_index]</pointer>
+        <offset>64</offset>
         <repeat>expr</repeat>
         <repeat-expr>
-          (int)_self._parent.header.num_models
+          (int)_self._parent.header.num_models.Value
         </repeat-expr>
       </attr>
     </type>
     <attr name="header" type="header" />
     <attr name="list" type="list">
-      <offset>_self.header.list_offset + 64</offset>
+      <pointer>_self.header.list_offset</pointer>
+      <offset>64</offset>
     </attr>
   </type>
   <type name="object">
@@ -249,14 +254,15 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="unk003" type="u4le" />
     <attr name="info" type="info">
       <if>_self.offset != 0</if>
-      <offset>_self.offset + 64</offset>
+      <pointer>_self.offset</pointer>
+      <offset>64</offset>
     </attr>
   </type>
   <type name="objects">
     <attr name="desc" type="object">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_objects
+        (int)_self._parent.models.header.num_objects.Value
       </repeat-expr>
     </attr>
   </type>
@@ -273,16 +279,18 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         <repeat-expr>2</repeat-expr>
       </attr>
       <attr name="obj" type="object">
-        <offset>_self.obj_offset + 64</offset>
+        <pointer>_self.obj_offset</pointer>
+        <offset>64</offset>
       </attr>
       <attr name="name" type="str_ascii">
-        <offset>_self.name_offset + 64</offset>
+        <pointer>_self.name_offset</pointer>
+        <offset>64</offset>
       </attr>
     </type>
     <attr name="desc" type="desc">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_dynamics
+        (int)_self._parent.models.header.num_dynamics.Value
       </repeat-expr>
     </attr>
   </type>
@@ -293,45 +301,49 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="name_offset" type="u4le" />
       <attr name="loc_offset" type="u4le" />
       <attr name="name" type="str_ascii">
-        <offset>_self.name_offset + 64</offset>
+        <pointer>_self.name_offset</pointer>
+        <offset>64</offset>
       </attr>
       <attr name="location" type="vector">
-        <offset>_self.loc_offset + 64</offset>
+        <pointer>_self.loc_offset</pointer>
+        <offset>64</offset>
       </attr>
     </type>
     <attr name="desc" type="desc">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_locators
+        (int)_self._parent.models.header.num_locators.Value
       </repeat-expr>
     </attr>
   </type>
   <type name="groups">
     <type name="level3">
-      <attr name="flag" type="u4le" />
+      <attr name="stat" type="u4le" />
     </type>
     <type name="level2">
       <type name="desc">
         <attr name="offsets" type="u4le">
           <repeat>expr</repeat>
           <repeat-expr>
-            (int)_self._parent.num_children
+            (int)_self._parent.num_children.Value
           </repeat-expr>
         </attr>
         <attr name="children" type="level3">
           <if>_self.offsets[_index] != 0</if>
-          <offset>_self.offsets[_index] + 64</offset>
+          <pointer>_self.offsets[_index]</pointer>
+          <offset>64</offset>
           <repeat>expr</repeat>
           <repeat-expr>
-            (int)_self._parent.num_children
+            (int)_self._parent.num_children.Value
           </repeat-expr>
         </attr>
       </type>
       <attr name="num_children" type="u4le" />
-      <attr name="flag" type="u4le" />
+      <attr name="stat" type="u4le" />
       <attr name="desc_offset" type="u4le" />
       <attr name="desc" type="desc">
-        <offset>_self.desc_offset + 64</offset>
+        <pointer>_self.desc_offset</pointer>
+        <offset>64</offset>
       </attr>
     </type>
     <type name="level1">
@@ -339,15 +351,16 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
         <attr name="offsets" type="u4le">
           <repeat>expr</repeat>
           <repeat-expr>
-            (int)_self._parent.num_children
+            (int)_self._parent.num_children.Value
           </repeat-expr>
         </attr>
         <attr name="children" type="level2">
           <if>_self.offsets[_index] != 0</if>
-          <offset>_self.offsets[_index] + 64</offset>
+          <pointer>_self.offsets[_index]</pointer>
+          <offset>64</offset>
           <repeat>expr</repeat>
           <repeat-expr>
-            (int)_self._parent.num_children
+            (int)_self._parent.num_children.Value
           </repeat-expr>
         </attr>
       </type>
@@ -358,63 +371,57 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="num_children" type="u4le" />
       <attr name="desc_offset" type="u4le" />
       <attr name="desc" type="desc">
-        <offset>_self.desc_offset + 64</offset>
+        <pointer>_self.desc_offset</pointer>
+        <offset>64</offset>
       </attr>
     </type>
     <attr name="offsets" type="u4le">
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_groups
+        (int)_self._parent.models.header.num_groups.Value
       </repeat-expr>
     </attr>
     <attr name="root" type="level1">
       <if>_self.offsets[_index] != 0</if>
-      <offset>_self.offsets[_index] + 64</offset>
+      <pointer>_self.offsets[_index]</pointer>
+      <offset>64</offset>
       <repeat>expr</repeat>
       <repeat-expr>
-        (int)_self._parent.models.header.num_groups
+        (int)_self._parent.models.header.num_groups.Value
       </repeat-expr>
     </attr>
   </type>
   <attr name="header" type="file_header" />
   <attr name="textures" type="textures">
-    <offset>
-      _self.header.texture_offset + 64
-    </offset>
+    <pointer>_self.header.texture_offset</pointer>
+    <offset>64</offset>
   </attr>
   <attr name="materials" type="materials">
-    <offset>
-      _self.header.material_offset + 64
-    </offset>
+    <pointer>_self.header.material_offset</pointer>
+    <offset>64</offset>
   </attr>
   <attr name="verticies" type="verticies">
-    <offset>
-      _self.header.vertex_offset + 64
-    </offset>
+    <pointer>_self.header.vertex_offset</pointer>
+    <offset>64</offset>
   </attr>
   <attr name="models" type="models">
-    <offset>
-      _self.header.model_offset + 64
-    </offset>
+    <pointer>_self.header.model_offset</pointer>
+    <offset>64</offset>
   </attr>
   <attr name="objects" type="objects">
-    <offset>
-      _self.header.object_offset + 64
-    </offset>
+    <pointer>_self.header.object_offset</pointer>
+    <offset>64</offset>
   </attr>
   <attr name="dynamics" type="dynamics">
-    <offset>
-      _self.header.dynamic_offset + 64
-    </offset>
+    <pointer>_self.header.dynamic_offset</pointer>
+    <offset>64</offset>
   </attr>
   <attr name="locators" type="locators">
-    <offset>
-      _self.models.header.locator_offset + 64
-    </offset>
+    <pointer>_self.models.header.locator_offset</pointer>
+    <offset>64</offset>
   </attr>
   <attr name="groups" type="groups">
-    <offset>
-      _self.models.header.group_offset + 64
-    </offset>
+    <pointer>_self.models.header.group_offset</pointer>
+    <offset>64</offset>
   </attr>
 </type>

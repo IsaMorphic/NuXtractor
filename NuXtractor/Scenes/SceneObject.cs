@@ -16,15 +16,15 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using NuXtractor.Models;
+
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NuXtractor.Scenes
 {
-    using Models;
-
     public class SceneObject
     {
         public int Id { get; }

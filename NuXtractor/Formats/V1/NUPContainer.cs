@@ -1,9 +1,28 @@
-﻿using System.IO;
+﻿/*
+ *  Copyright 2020 Chosen Few Software
+ *  This file is part of NuXtractor.
+ *
+ *  NuXtractor is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NuXtractor is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+using NuXtractor.Textures;
+
+using System.IO;
 using System.Threading.Tasks;
 
 namespace NuXtractor.Formats.V1
 {
-    using Textures;
 
     public class NUPContainer : LevelContainer, ITextureContainer
     {
@@ -16,7 +35,7 @@ namespace NuXtractor.Formats.V1
 
             var textures = data.textures;
 
-            var stream = textures.data[id];
+            Stream stream = textures.blocks.data[id];
             stream.Seek(0, SeekOrigin.Begin);
 
             var info = new DDSInfo(stream);

@@ -22,16 +22,15 @@ using MightyStruct.Serializers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-using System;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
-    public abstract class Texture : IDisposable, IAsyncDisposable
+    public abstract class Texture
     {
-        private static readonly ISerializer<ulong> Longs = new UInt64Serializer(EndianInfo.SystemEndianness);
-        private static readonly ISerializer<uint> Ints = new UInt32Serializer(EndianInfo.SystemEndianness);
+        private static ISerializer<ulong> Longs { get; } = new UInt64Serializer(EndianInfo.SystemEndianness);
+        private static ISerializer<uint> Ints { get; } = new UInt32Serializer(EndianInfo.SystemEndianness);
 
         public int Id { get; }
 
@@ -77,32 +76,5 @@ namespace NuXtractor.Textures
             Stream.Seek(0, SeekOrigin.Begin);
             return stream.CopyToAsync(Stream);
         }
-
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    Stream.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return Stream.DisposeAsync();
-        }
-        #endregion
     }
 }
