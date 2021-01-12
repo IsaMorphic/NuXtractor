@@ -18,7 +18,7 @@
 
 using MightyStruct;
 using MightyStruct.Runtime;
-
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -27,25 +27,13 @@ namespace NuXtractor
 {
     public class FileFormats
     {
-        private static Dictionary<string, IType> CachedTypes { get; }
-
         public static IType GetFormat(string name)
         {
-            IType format;
-            if (CachedTypes.ContainsKey(name))
+            using (var formatStream = File.OpenRead($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\Mighty\\{name}.xml"))
             {
-                format = CachedTypes[name];
+                var format = Parser.ParseFromStream(formatStream);
+                return format;
             }
-            else
-            {
-                using (var formatStream = File.OpenRead($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\Mighty\\{name}.xml"))
-                {
-                    format = Parser.ParseFromStream(formatStream);
-                    CachedTypes.Add(name, format);
-                }
-            }
-
-            return format;
         }
     }
 }

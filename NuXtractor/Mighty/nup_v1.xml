@@ -27,11 +27,10 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="model_offset" type="u4le" />
     <attr name="object_offset" type="u4le" />
     <attr name="dynamic_offset" type="u4le" />
-    <attr name="unk003" type="u4le">
+    <attr name="other_offsets" type="u4le">
       <repeat>expr</repeat>
-      <repeat-expr>6</repeat-expr>
+      <repeat-expr>7</repeat-expr>
     </attr>
-    <attr name="end_offset" type="u4le" />
   </type>
   <type name="textures">
     <type name="header">
@@ -157,6 +156,38 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       </attr>
       <attr name="group_offset" type="u4le" />
       <attr name="num_groups" type="u4le" />
+      <attr name="unk004" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>11</repeat-expr>
+      </attr>
+      <attr name="unkptr000" type="u4le" />
+      <attr name="unkptr001" type="u4le" />
+      <attr name="unk005" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>2</repeat-expr>
+      </attr>
+      <attr name="unkptr002" type="u4le" />
+      <attr name="unk006" type="u4le" />
+      <attr name="unkptr003" type="u4le" />
+      <attr name="unk007" type="u4le" />
+      <attr name="unkptr004" type="u4le" />
+      <attr name="unk008" type="u4le" />
+      <attr name="unkptr005" type="u4le" />
+      <attr name="unk009" type="u4le" />
+      <attr name="unkptr006" type="u4le" />
+      <attr name="unk010" type="u4le" />
+      <attr name="unkptr007" type="u4le" />
+      <attr name="unk011" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>52</repeat-expr>
+      </attr>
+      <attr name="unkptr008" type="u4le" />
+      <attr name="unkptr009" type="u4le" />
+      <attr name="unk012" type="u4le">
+        <repeat>expr</repeat>
+        <repeat-expr>3</repeat-expr>
+      </attr>
+      <attr name="unkptr010" type="u4le" />
     </type>
     <type name="model">
       <type name="elements">
@@ -318,6 +349,20 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
   <type name="groups">
     <type name="level3">
       <attr name="stat" type="u4le" />
+      <attr name="unk000_offset" type="u4le" />
+      <attr name="unk001_offset" type="u4le" />
+      <attr name="unk000">
+        <if>_self.unk000_offset != 0</if>
+        <pointer>_self.unk000_offset</pointer>
+        <offset>64</offset>
+        <size>0</size>
+      </attr>
+      <attr name="unk001">
+        <if>_self.unk001_offset != 0</if>
+        <pointer>_self.unk001_offset</pointer>
+        <offset>64</offset>
+        <size>0</size>
+      </attr>
     </type>
     <type name="level2">
       <type name="desc">
@@ -340,9 +385,23 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <attr name="num_children" type="u4le" />
       <attr name="stat" type="u4le" />
       <attr name="desc_offset" type="u4le" />
+      <attr name="other_offset" type="u4le" />
+      <attr name="this_offset" type="u4le" />
       <attr name="desc" type="desc">
         <pointer>_self.desc_offset</pointer>
         <offset>64</offset>
+      </attr>
+      <attr name="other">
+        <if>_self.other_offset != 0</if>
+        <pointer>_self.other_offset</pointer>
+        <offset>64</offset>
+        <size>0</size>
+      </attr>
+      <attr name="this">
+        <if>_self.this_offset != 0</if>
+        <pointer>_self.this_offset</pointer>
+        <offset>64</offset>
+        <size>0</size>
       </attr>
     </type>
     <type name="level1">
@@ -363,12 +422,16 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
           </repeat-expr>
         </attr>
       </type>
-      <attr name="unk000" type="u4le">
-        <repeat>expr</repeat>
-        <repeat-expr>2</repeat-expr>
-      </attr>
+      <attr name="unk000" type="u4le" />
+      <attr name="dummy_offset" type="u4le" />
       <attr name="num_children" type="u4le" />
       <attr name="desc_offset" type="u4le" />
+      <attr name="dummy">
+        <if>_self.dummy_offset != 0</if>
+        <pointer>_self.dummy_offset</pointer>
+        <offset>64</offset>
+        <size>0</size>
+      </attr>
       <attr name="desc" type="desc">
         <pointer>_self.desc_offset</pointer>
         <offset>64</offset>
@@ -422,5 +485,14 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
   <attr name="groups" type="groups">
     <pointer>_self.models.header.group_offset</pointer>
     <offset>64</offset>
+  </attr>
+  <attr name="others">
+    <repeat>expr</repeat>
+    <repeat-expr>
+      _self.header.other_offsets.size
+    </repeat-expr>
+    <pointer>_self.header.other_offsets[_index]</pointer>
+    <offset>64</offset>
+    <size>0</size>
   </attr>
 </type>

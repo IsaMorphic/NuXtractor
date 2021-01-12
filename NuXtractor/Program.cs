@@ -28,6 +28,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 using System;
 using System.IO;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace NuXtractor
@@ -93,11 +94,11 @@ namespace NuXtractor
         [Option('t', "texture-file", Required = true, HelpText = "Path to new texture file.")]
         public string TextureFile { get; set; }
 
-        [Option('m', "model-file", Required = true, HelpText = "Path to input obj model file.")]
-        public string ModelFile { get; set; }
+        //[Option('m', "model-file", Required = true, HelpText = "Path to input obj model file.")]
+        //public string ModelFile { get; set; }
 
-        [Option('o', "output-file", Required = true, HelpText = "Path to stripped output obj model file.")]
-        public string OutputFile { get; set; }
+        //[Option('o', "output-file", Required = true, HelpText = "Path to stripped output obj model file.")]
+        //public string OutputFile { get; set; }
     }
 
     class Program
@@ -421,19 +422,19 @@ namespace NuXtractor
 
         static async Task RunTestAsync(TestOptions options)
         {
-            var obj = new OBJMesh(File.OpenText(options.ModelFile));
-            await obj.ParseAsync();
+            //var obj = new OBJMesh(File.OpenText(options.ModelFile));
+            //await obj.ParseAsync();
 
-            using (var writer = File.CreateText(options.OutputFile))
-            {
-                int idx = 0;
-                writer.AutoFlush = true;
-                foreach (var strip in await obj.ToTriangleStripsAsync())
-                {
-                    await writer.WriteLineAsync($"o strip_{idx++}");
-                    await strip.WriteToOBJAsync(writer);
-                }
-            }
+            //using (var writer = File.CreateText(options.OutputFile))
+            //{
+            //    int idx = 0;
+            //    writer.AutoFlush = true;
+            //    foreach (var strip in await obj.ToTriangleStripsAsync())
+            //    {
+            //        await writer.WriteLineAsync($"o strip_{idx++}");
+            //        await strip.WriteToOBJAsync(writer);
+            //    }
+            //}
 
             var file = await OpenContainerAsync(options) as Formats.V1.LevelContainer;
 
@@ -441,13 +442,17 @@ namespace NuXtractor
             var texture = new FormattedFile("dds_texture", options.TextureFile);
             await texture.LoadAsync();
 
-            var textureStream = await file.ResizeTexture(0, (int)texture.data.header.width.Value, (int)texture.data.header.height.Value, (int)texture.data.header.mipmapCount.Value, texture.data.Context.Stream.Length);
-            texture.Stream.Seek(0, SeekOrigin.Begin);
-            await texture.Stream.CopyToAsync(textureStream);
+            await file.AddTextureAsync((int)texture.data.header.width.Value, (int)texture.data.header.height.Value, (int)texture.data.header.mipmapCount.Value, texture.Stream);
 
-            // Vertex data resizing
-            var vtxStream = await file.ResizeVertexBlock(0, 1024);
-            var elemStream = await file.ResizeElementArray(0, 1024);
+            await file.AddObjectAsync(603, Matrix4x4.CreateTranslation(-9, 0, 0));
+
+            //var textureStream = await file.ResizeTexture(0, , texture.data.Context.Stream.Length);
+            //texture.Stream.Seek(0, SeekOrigin.Begin);
+            //await texture.Stream.CopyToAsync(textureStream);
+
+            //// Vertex data resizing
+            //var vtxStream = await file.ResizeVertexBlock(0, 1024);
+            //var elemStream = await file.ResizeElementArray(0, 1024);
         }
     }
 }

@@ -52,6 +52,118 @@ namespace NuXtractor.Formats.V1
             return data.textures.blocks.data[id];
         }
 
+        public async Task AddObjectAsync(int modelId, Matrix4x4 transform)
+        {
+            int lastIndex = data.objects.desc.size - 1;
+
+            var obj = data.objects.desc[lastIndex];
+            await obj.Context.Segment.ResizeAsync(4096 + 80);
+
+            data.header.unk001.Value += 4096;
+            await data.header.UpdateAsync();
+
+            data.models.header.unkptr000.Value += 4096;
+            data.models.header.unkptr001.Value += 4096;
+            data.models.header.unkptr002.Value += 4096;
+            data.models.header.unkptr003.Value += 4096;
+            data.models.header.unkptr004.Value += 4096;
+            data.models.header.unkptr005.Value += 4096;
+            data.models.header.unkptr006.Value += 4096;
+            data.models.header.unkptr007.Value += 4096;
+            data.models.header.unkptr008.Value += 4096;
+            data.models.header.unkptr009.Value += 4096;
+            data.models.header.unkptr010.Value += 4096;
+
+            data.models.header.num_objects.Value++;
+            await data.models.header.UpdateAsync();
+
+            await data.objects.desc.ParseAsync();
+
+            lastIndex++;
+
+            var newObj = data.objects.desc[lastIndex];
+            var objTrans = newObj.transform;
+
+            objTrans[0] = transform.M11;
+            objTrans[1] = transform.M12;
+            objTrans[2] = transform.M13;
+            objTrans[3] = transform.M14;
+
+            objTrans[4] = transform.M21;
+            objTrans[5] = transform.M22;
+            objTrans[6] = transform.M23;
+            objTrans[7] = transform.M24;
+
+            objTrans[8] = transform.M31;
+            objTrans[9] = transform.M32;
+            objTrans[10] = transform.M33;
+            objTrans[11] = transform.M34;
+
+            objTrans[12] = transform.M41;
+            objTrans[13] = transform.M42;
+            objTrans[14] = transform.M43;
+            objTrans[15] = transform.M44;
+
+            newObj.model = (ushort)modelId;
+            await newObj.UpdateAsync();
+        }
+
+        public async Task<Texture> AddTextureAsync(int width, int height, int levels, Stream stream)
+        {
+            int lastIndex = (int)data.textures.header.count.Value - 1;
+
+            var entries = data.textures.desc;
+            var blocks = data.textures.blocks.data;
+
+            var entry = entries[lastIndex];
+            var block = blocks[lastIndex];
+
+            long entryOffset = blocks.Context.Stream.AbsoluteOffset;
+
+            long newEntryEnd = entryOffset + 20;
+            long newEntrySize = newEntryEnd / 4096 * 4096 + 4096 - entryOffset + 20;
+
+            await entry.Context.Segment.ResizeAsync(newEntrySize);
+
+            data.textures.header.count.Value++;
+            data.textures.header.data_offset += newEntrySize - 20;
+
+            lastIndex++;
+
+            await entries.ParseAsync();
+            var newEntry = entries[lastIndex];
+
+            newEntry.width = width;
+            newEntry.height = height;
+            newEntry.levels = levels;
+            newEntry.type = 0x0E;
+
+            newEntry.offset = block.Context.Stream.AbsoluteOffset - blocks.Context.Stream.AbsoluteOffset + block.Context.Stream.Length;
+
+            await newEntry.UpdateAsync();
+
+            long oldBlockSize = block.Context.Stream.Length;
+
+            long blockOffset = block.Context.Stream.AbsoluteOffset;
+            long newBlockEnd = blockOffset + oldBlockSize + stream.Length;
+
+            long newBlockSize = newBlockEnd / 4096 * 4096 + 4096 - blockOffset;
+            await block.Context.Segment.ResizeAsync(newBlockSize);
+
+            data.textures.header.last_offset += (uint)(newBlockSize - oldBlockSize);
+            await data.textures.header.UpdateAsync();
+
+            await blocks.ParseAsync();
+
+            var newBlock = blocks[lastIndex];
+            newBlock.Context.Stream.Seek(0, SeekOrigin.Begin);
+
+            stream.Seek(0, SeekOrigin.Begin);
+            await stream.CopyToAsync(newBlock.Context.Stream);
+
+            return await GetTextureAsync(lastIndex);
+        }
+
         public async Task<Stream> ResizeVertexBlock(int modelId, short deltaSize)
         {
             var model = data.models.list.desc[modelId].model;

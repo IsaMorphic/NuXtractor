@@ -31,53 +31,50 @@ namespace NuXtractor.Formats.V1
         {
         }
 
-        public Model[] CachedModels { get; private set; }
+        public Dictionary<int, Model> CachedModels { get; private set; }
         public int ModelCount => data.models.list.desc.size;
 
         public Dictionary<long, Mesh> CachedSubModels { get; private set; }
 
-        public Material[] CachedMaterials { get; private set; }
+        public Dictionary<int, Material> CachedMaterials { get; private set; }
         public int MaterialCount => data.materials.desc.size;
 
-        public Texture[] CachedTextures { get; private set; }
+        public Dictionary<int, Texture> CachedTextures { get; private set; }
         public int TextureCount => data.textures.desc.size;
 
         protected override Task OnLoadAsync()
         {
-            CachedModels = new Model[ModelCount];
+            CachedModels = new Dictionary<int, Model>();
             CachedSubModels = new Dictionary<long, Mesh>();
 
-            CachedMaterials = new Material[MaterialCount];
+            CachedMaterials = new Dictionary<int, Material>();
 
-            CachedTextures = new Texture[TextureCount];
+            CachedTextures = new Dictionary<int, Texture>();
 
             return base.OnLoadAsync();
         }
 
         public async Task<Model> GetModelAsync(int id)
         {
-            if (CachedModels[id] == null)
-                return CachedModels[id] = await GetNewModelAsync(id);
-            else
-                return CachedModels[id];
+            if (!CachedModels.ContainsKey(id))
+                CachedModels.Add(id, await GetNewModelAsync(id));
+            return CachedModels[id];
         }
         protected abstract Task<Model> GetNewModelAsync(int id);
 
         public async Task<Material> GetMaterialAsync(int id)
         {
-            if (CachedMaterials[id] == null)
-                return CachedMaterials[id] = await GetNewMaterialAsync(id);
-            else
-                return CachedMaterials[id];
+            if (!CachedMaterials.ContainsKey(id))
+                CachedMaterials.Add(id, await GetNewMaterialAsync(id));
+            return CachedMaterials[id];
         }
         protected abstract Task<Material> GetNewMaterialAsync(int id);
 
         public async Task<Texture> GetTextureAsync(int id)
         {
-            if (CachedTextures[id] == null)
-                return CachedTextures[id] = await GetNewTextureAsync(id);
-            else
-                return CachedTextures[id];
+            if (!CachedTextures.ContainsKey(id))
+                CachedTextures.Add(id, await GetNewTextureAsync(id));
+            return CachedTextures[id];
         }
         protected abstract Task<Texture> GetNewTextureAsync(int id);
     }
