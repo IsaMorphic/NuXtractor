@@ -1,62 +1,62 @@
-﻿using System;
+﻿/*
+ *  Copyright 2020 Chosen Few Software
+ *  This file is part of NuXtractor.
+ *
+ *  NuXtractor is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NuXtractor is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+using NuXtractor.Materials;
+using NuXtractor.Models;
+
+using System;
+using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 
 namespace NuXtractor.Formats.V1
 {
-    using Materials;
-    using Models;
-
     public class Mesh : Model
     {
-        private int[] Indicies { get; }
-        private VertexStream Stream { get; }
+        public Mesh Next { get; }
 
-        private UVCoord[] CachedUVs { get; set; }
+        private ElementStream ElemStream { get; }
+        private VertexStream VtxStream { get; }
+
         private Vertex[] CachedVerticies { get; set; }
-        private Face[] CachedFaces { get; set; }
+        private Triangle[] CachedTris { get; set; }
 
-        public Mesh(Model next, Material material, int[] indicies, VertexStream stream) : base(next, material)
+        public Mesh(Material material, Mesh next, ElementStream elemStream, VertexStream vtxStream) : base(material)
         {
-            Indicies = indicies;
-            Stream = stream;
-        }
-
-        public override async Task<UVCoord[]> GetUVsAsync()
-        {
-            if (CachedUVs != null) return CachedUVs;
-
-            var uArr = await Stream.GetAttributeArray(VertexAttribute.U);
-            var vArr = await Stream.GetAttributeArray(VertexAttribute.V);
-
-            var uvArr = new UVCoord[Stream.Length];
-
-            for (int i = 0; i < uvArr.Length; i++)
-            {
-                var u = BitConverter.Int32BitsToSingle(uArr[i]);
-                var v = BitConverter.Int32BitsToSingle(vArr[i]);
-
-                uvArr[i] = new UVCoord(i, u, 1 - v);
-            }
-
-            CachedUVs = uvArr;
-
-            return uvArr;
+            Next = next;
+            ElemStream = elemStream;
+            VtxStream = vtxStream;
         }
 
         public override async Task<Vertex[]> GetVerticesAsync()
         {
             if (CachedVerticies != null) return CachedVerticies;
 
-            var xArr = await Stream.GetAttributeArray(VertexAttribute.X);
-            var yArr = await Stream.GetAttributeArray(VertexAttribute.Y);
-            var zArr = await Stream.GetAttributeArray(VertexAttribute.Z);
+            var xArr = await VtxStream.GetAttributeArray(VertexAttribute.X);
+            var yArr = await VtxStream.GetAttributeArray(VertexAttribute.Y);
+            var zArr = await VtxStream.GetAttributeArray(VertexAttribute.Z);
 
-            var cArr = await Stream.GetAttributeArray(VertexAttribute.Color);
+            var uArr = await VtxStream.GetAttributeArray(VertexAttribute.U);
+            var vArr = await VtxStream.GetAttributeArray(VertexAttribute.V);
 
-            var uvArr = await GetUVsAsync();
+            var cArr = await VtxStream.GetAttributeArray(VertexAttribute.Color);
 
-            var vtxArr = new Vertex[Stream.Length];
+            var vtxArr = new Vertex[VtxStream.Count];
 
             for (int i = 0; i < vtxArr.Length; i++)
             {
@@ -64,8 +64,11 @@ namespace NuXtractor.Formats.V1
                 var y = BitConverter.Int32BitsToSingle(yArr[i]);
                 var z = BitConverter.Int32BitsToSingle(zArr[i]);
 
-                var xyz = new Vector3(x, y, z);
-                var uv = uvArr[i];
+                var u = BitConverter.Int32BitsToSingle(uArr[i]);
+                var v = BitConverter.Int32BitsToSingle(vArr[i]);
+
+                var pos = new Vector3(x, y, z);
+                var tex = new Vector2(u, v);
 
                 var c = BitConverter.GetBytes(cArr[i]);
 
@@ -77,36 +80,41 @@ namespace NuXtractor.Formats.V1
 
                 var color = new Color(r, g, b, a);
 
-                vtxArr[i] = new Vertex(i, xyz, uv, color);
+                vtxArr[i] = new Vertex(pos, tex, color);
             }
 
             CachedVerticies = vtxArr;
-
             return vtxArr;
         }
 
-        public override Task<int[]> GetIndiciesAsync()
+        public Task<int[]> GetIndiciesAsync()
         {
-            return Task.FromResult(Indicies);
+            return ElemStream.ReadElementsAsync();
         }
 
-        public override async Task<Face[]> GetFacesAsync()
+        public override async Task<Triangle[]> GetTrianglesAsync()
         {
-            if (CachedFaces != null) return CachedFaces;
+            if (CachedTris != null) return CachedTris;
 
-            var vtxArr = await GetVerticesAsync();
             var idxArr = await GetIndiciesAsync();
+            Triangle[] tris = new Triangle[idxArr.Length - 2];
 
-            Face[] faceArr = new Face[idxArr.Length - 2];
-
-            for (int i = 0; i < faceArr.Length; i++)
+            for (int i = 0; i < tris.Length; i++)
             {
-                faceArr[i] = new Face(i, vtxArr[idxArr[i + i % 2]], vtxArr[idxArr[i - i % 2 + 1]], vtxArr[idxArr[i + 2]]);
+                tris[i] = new Triangle(idxArr[i + i % 2], idxArr[i - i % 2 + 1], idxArr[i + 2]);
             }
 
-            CachedFaces = faceArr;
+            CachedTris = tris;
+            return tris;
+        }
 
-            return faceArr;
+        public override async Task WriteToOBJAsync(StreamWriter writer, Matrix4x4? transform = null)
+        {
+            await base.WriteToOBJAsync(writer, transform);
+            if (Next != null)
+            {
+                await Next.WriteToOBJAsync(writer, transform);
+            }
         }
     }
 }

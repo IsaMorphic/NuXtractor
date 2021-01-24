@@ -1,5 +1,24 @@
-﻿using MightyStruct;
+﻿/*
+ *  Copyright 2020 Chosen Few Software
+ *  This file is part of NuXtractor.
+ *
+ *  NuXtractor is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NuXtractor is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+using MightyStruct;
 using MightyStruct.Runtime;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,10 +35,10 @@ namespace NuXtractor
             CachedTypes = new Dictionary<string, IType>();
         }
 
-        private string FormatName { get; }
-        private Stream Stream { get; }
+        public string FormatName { get; }
+        public Stream Stream { get; }
 
-        protected dynamic data { get; private set; }
+        public dynamic data { get; private set; }
 
         public FormattedStream(string formatName, Stream stream)
         {
@@ -43,7 +62,7 @@ namespace NuXtractor
                 }
             }
 
-            data = await format.Resolve(new Context(Stream));
+            data = await format.Resolve(new Context(new Segment(Stream)));
             await data.ParseAsync();
 
             await OnLoadAsync();

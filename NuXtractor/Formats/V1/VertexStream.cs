@@ -1,4 +1,22 @@
-﻿using MightyStruct;
+﻿/*
+ *  Copyright 2020 Chosen Few Software
+ *  This file is part of NuXtractor.
+ *
+ *  NuXtractor is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NuXtractor is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+using MightyStruct;
 using MightyStruct.Serializers;
 
 using System.IO;
@@ -20,27 +38,27 @@ namespace NuXtractor.Formats.V1
     {
         private const uint STRIDE = 32;
 
-        private static ISerializer<int> Words { get; } =
+        private static ISerializer<int> DWords { get; } =
             new SInt32Serializer(Endianness.LittleEndian);
 
         private Stream Stream { get; }
 
-        public int Length { get; }
+        public int Count { get; }
 
         public VertexStream(Stream stream)
         {
             Stream = stream;
-            Length = (int)(Stream.Length / (STRIDE + 4));
+            Count = (int)(Stream.Length / (STRIDE + 4));
         }
 
         public async Task<int[]> GetAttributeArray(VertexAttribute attr)
         {
-            var attrs = new int[Length];
+            var attrs = new int[Count];
 
             Stream.Seek((long)attr, SeekOrigin.Begin);
             for (int i = 0; i < attrs.Length; i++)
             {
-                attrs[i] = await Words.ReadFromStreamAsync(Stream);
+                attrs[i] = await DWords.ReadFromStreamAsync(Stream);
                 Stream.Seek(STRIDE, SeekOrigin.Current);
             }
 

@@ -16,12 +16,24 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Threading.Tasks;
+using MightyStruct;
+using MightyStruct.Runtime;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 
-namespace NuXtractor.Scenes
+namespace NuXtractor
 {
-    public interface ISceneContainer
+    public class FileFormats
     {
-        Task<Scene> GetSceneAsync();
+        public static IType GetFormat(string name)
+        {
+            using (var formatStream = File.OpenRead($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\Mighty\\{name}.xml"))
+            {
+                var format = Parser.ParseFromStream(formatStream);
+                return format;
+            }
+        }
     }
 }

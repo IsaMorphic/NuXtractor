@@ -16,12 +16,31 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using NuXtractor.Materials;
+
 using System.Threading.Tasks;
 
-namespace NuXtractor.Scenes
+namespace NuXtractor.Models
 {
-    public interface ISceneContainer
+    public abstract class TriangleStrip : Model
     {
-        Task<Scene> GetSceneAsync();
+        public TriangleStrip(Material material) : base(material)
+        {
+        }
+
+        public abstract Task<int[]> GetIndiciesAsync();
+
+        public override async Task<Triangle[]> GetTrianglesAsync()
+        {
+            var arr = await GetIndiciesAsync();
+
+            Triangle[] strip = new Triangle[arr.Length - 2];
+            for (int i = 0; i < strip.Length; i++)
+            {
+                strip[i] = new Triangle(arr[i + i % 2], arr[i - i % 2 + 1], arr[i + 2]);
+            }
+
+            return strip;
+        }
     }
 }

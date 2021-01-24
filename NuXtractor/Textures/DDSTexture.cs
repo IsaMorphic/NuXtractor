@@ -1,4 +1,24 @@
-﻿using MightyStruct.Serializers;
+﻿/*
+ *  Copyright 2020 Chosen Few Software
+ *  This file is part of NuXtractor.
+ *
+ *  NuXtractor is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  NuXtractor is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+using MightyStruct.Serializers;
+
+using NuXtractor.Textures.DXT;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -10,8 +30,6 @@ using System.Threading.Tasks;
 
 namespace NuXtractor.Textures
 {
-    using DXT;
-
     public enum DXTType
     {
         DXT1,
@@ -32,16 +50,16 @@ namespace NuXtractor.Textures
 
         public DXTType PixelFormat { get; private set; }
 
-        public Stream Stream { get; private set; }
+        public new Stream Stream { get; private set; }
 
         protected override Task OnLoadAsync()
         {
             var header = data.header;
 
-            Width = (int)header.width;
-            Height = (int)header.height;
+            Width = (int)header.width.Value;
+            Height = (int)header.height.Value;
 
-            Levels = (int)header.mipmapCount;
+            Levels = (int)header.mipmapCount.Value;
 
             var ccBytes = BitConverter.GetBytes(header.pixelFormat.fourCC);
             var ccCode = Encoding.ASCII.GetString(ccBytes);

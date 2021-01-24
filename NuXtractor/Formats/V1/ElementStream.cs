@@ -16,46 +16,40 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using NuXtractor.Models;
+using MightyStruct;
+using MightyStruct.Serializers;
 
-using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
 using System.Threading.Tasks;
 
-namespace NuXtractor.Scenes
+namespace NuXtractor.Formats.V1
 {
-    public class SceneObject
+    public class ElementStream
     {
-        public int Id { get; }
-        public string Name { get; }
+        private static ISerializer<ushort> Words { get; } =
+            new UInt16Serializer(Endianness.LittleEndian);
 
-        public Model Model { get; }
-        public Matrix4x4 Transform { get; }
+        private Stream Stream { get; }
 
-        public List<SceneObject> Children { get; }
+        public int Count { get; }
 
-        public SceneObject(int id, string name, Model models, Matrix4x4 transform)
+        public ElementStream(Stream stream)
         {
-            Id = id;
-            Name = name;
-
-            Model = models;
-            Transform = transform;
-
-            Children = new List<SceneObject>();
+            Stream = stream;
+            Count = (int)(stream.Length / 2);
         }
 
-        public async Task WriteToOBJAsync(StreamWriter writer)
+        public async Task<int[]> ReadElementsAsync()
         {
-            await writer.WriteLineAsync($"o {Name}");
+            var elements = new int[Count];
+            Stream.Seek(0, SeekOrigin.Begin);
 
-            await Model.WriteToOBJAsync(writer, Transform);
-
-            foreach (var child in Children)
+            for (int i = 0; i < elements.Length; i++)
             {
-                await child.WriteToOBJAsync(writer);
+                elements[i] = await Words.ReadFromStreamAsync(Stream);
             }
+
+            return elements;
         }
     }
 }

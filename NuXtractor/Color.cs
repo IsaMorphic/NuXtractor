@@ -16,12 +16,28 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Threading.Tasks;
-
-namespace NuXtractor.Scenes
+namespace NuXtractor
 {
-    public interface ISceneContainer
+    public struct Color
     {
-        Task<Scene> GetSceneAsync();
+        public float Red { get; }
+        public float Green { get; }
+        public float Blue { get; }
+
+        public float Alpha { get; }
+
+        public Color(float red, float green, float blue, float alpha)
+        {
+            Red = red;
+            Green = green;
+            Blue = blue;
+
+            Alpha = alpha;
+        }
+
+        public override string ToString()
+        {
+            return $"{Red} {Green} {Blue}";
+        }
     }
 }
