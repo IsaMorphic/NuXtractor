@@ -39,7 +39,7 @@ namespace NuXtractor.Textures
 
     public class DDSInfo : FormattedStream
     {
-        public DDSInfo(Stream stream) : base("dds_texture", stream)
+        public DDSInfo(Stream stream) : base("textures\\dds", stream)
         {
         }
 

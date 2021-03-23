@@ -16,34 +16,40 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using NuXtractor.Textures;
+using MightyStruct;
+using MightyStruct.Serializers;
 
 using System.IO;
 using System.Threading.Tasks;
 
-namespace NuXtractor.Formats.V1
+namespace NuXtractor.LSW1.PCXB
 {
-
-    public class NUPContainer : LevelContainer, ITextureContainer
+    public class ElementStream
     {
-        public NUPContainer(string format, string path) : base(format, path)
+        private static ISerializer<ushort> Words { get; } =
+            new UInt16Serializer(Endianness.LittleEndian);
+
+        private Stream Stream { get; }
+
+        public int Count { get; }
+
+        public ElementStream(Stream stream)
         {
+            Stream = stream;
+            Count = (int)(stream.Length / 2);
         }
 
-        protected override async Task<Texture> GetNewTextureAsync(int id)
+        public async Task<int[]> ReadElementsAsync()
         {
+            var elements = new int[Count];
+            Stream.Seek(0, SeekOrigin.Begin);
 
-            var textures = data.textures;
+            for (int i = 0; i < elements.Length; i++)
+            {
+                elements[i] = await Words.ReadFromStreamAsync(Stream);
+            }
 
-            Stream stream = textures.blocks.data[id];
-            stream.Seek(0, SeekOrigin.Begin);
-
-            var info = new DDSInfo(stream);
-            await info.LoadAsync();
-
-            var texture = new DDSTexture(id, info, stream);
-
-            return texture;
+            return elements;
         }
     }
 }

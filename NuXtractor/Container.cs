@@ -23,7 +23,7 @@ using NuXtractor.Textures;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NuXtractor.Formats.V1
+namespace NuXtractor
 {
     public abstract class Container : FormattedFile, IModelContainer, IMaterialContainer, ITextureContainer
     {
@@ -32,20 +32,17 @@ namespace NuXtractor.Formats.V1
         }
 
         public Dictionary<int, Model> CachedModels { get; private set; }
-        public int ModelCount => data.models.list.desc.size;
-
-        public Dictionary<long, Mesh> CachedSubModels { get; private set; }
+        public abstract int ModelCount { get; }
 
         public Dictionary<int, Material> CachedMaterials { get; private set; }
-        public int MaterialCount => data.materials.desc.size;
+        public abstract int MaterialCount { get; }
 
         public Dictionary<int, Texture> CachedTextures { get; private set; }
-        public int TextureCount => data.textures.desc.size;
+        public abstract int TextureCount { get; }
 
         protected override Task OnLoadAsync()
         {
             CachedModels = new Dictionary<int, Model>();
-            CachedSubModels = new Dictionary<long, Mesh>();
 
             CachedMaterials = new Dictionary<int, Material>();
 

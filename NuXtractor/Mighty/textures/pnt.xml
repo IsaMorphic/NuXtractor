@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<type name="pnt">
+  <type name="palette">
+    <type name="color">
+      <attr type="u1" name="r" />
+      <attr type="u1" name="g" />
+      <attr type="u1" name="b" />
+      <attr type="u1" name="a" />
+    </type>
+    <attr name="unk000">
+      <size>0x6C</size>
+    </attr>
+    <attr type="color" name="colors">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        (_self._parent.flag &amp; 1) == 1 ? 256 : 16
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="pixels">
+    <attr name="unk000">
+      <size>0xBC</size>
+    </attr>
+    <attr name="data">
+      <size>_self._parent.width * _self._parent.height / ((_self._parent.flag &amp; 1) == 0 ? 2 : 1)</size>
+    </attr>
+  </type>
+  <attr type="u2le" name="width" />
+  <attr type="u2le" name="unk000" />
+  <attr type="u2le" name="height" />
+  <attr type="u2le" name="unk001" />
+  <attr type="u4le" name="unk002" />
+  <attr type="u4le" name="flag" />
+  <attr type="u4le" name="palette_length" />
+  <attr type="palette" name="palette" />
+  <attr type="u4le" name="pixels_length" />
+  <attr type="pixels" name="pixels" />
+</type>

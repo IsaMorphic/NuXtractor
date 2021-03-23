@@ -25,10 +25,14 @@ using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 
-namespace NuXtractor.Formats.V1
+namespace NuXtractor.LSW1.PCXB
 {
-    public abstract class LevelContainer : Container, ISceneContainer
+    public class LevelContainer : Container, ISceneContainer
     {
+        public override int ModelCount => data.models.list.desc.size;
+        public override int MaterialCount => data.materials.desc.size;
+        public override int TextureCount => data.textures.desc.size;
+
         protected LevelContainer(string format, string path) : base(format, path)
         {
         }
@@ -207,17 +211,8 @@ namespace NuXtractor.Formats.V1
             var material = await GetMaterialAsync((int)model.material.Value);
 
             Mesh next = null;
-            long offset = (long)model.next_offset.Value;
-            if (model.next != null)
-            {
-                if (CachedSubModels.ContainsKey(offset))
-                    next = CachedSubModels[offset];
-                else
-                {
-                    next = await ParseModelAsync(model.next);
-                    CachedSubModels.Add(offset, next);
-                }
-            }
+            if (model.next != null)            
+                next = await ParseModelAsync(model.next);
 
             return new Mesh(material, next, elemStream, vtxStream);
         }
@@ -285,6 +280,11 @@ namespace NuXtractor.Formats.V1
             }
 
             return scene;
+        }
+
+        protected override Task<Texture> GetNewTextureAsync(int id)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

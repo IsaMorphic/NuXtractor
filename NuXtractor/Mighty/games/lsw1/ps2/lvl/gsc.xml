@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<type name="gsc">
+  <type name="header">
+    <attr name="magic" type="u4le" />
+    <attr name="file_size" type="u4le" />
+    <attr name="unk000" type="u4le">
+      <repeat>expr</repeat>
+      <repeat-expr>
+        2
+      </repeat-expr>
+    </attr>
+  </type>
+  <type name="section">
+    <attr name="id" type="u4le" />
+    <attr name="size" type="u4le" />
+    <attr name="data">
+      <size>_self.size - 8</size>
+    </attr>
+  </type>
+  <attr name="header" type="header" />
+  <attr name="sections" type="section">
+    <repeat>until</repeat>
+    <repeat-until>
+      _self._io.pos >= _self.header.file_size
+    </repeat-until>
+  </attr>
+</type>

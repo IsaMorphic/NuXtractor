@@ -24,11 +24,11 @@ using NuXtractor.Textures.DXT;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace NuXtractor.Formats.V1
+namespace NuXtractor.LSW1.PCXB
 {
-    public class NUXContainer : LevelContainer, ITextureContainer
+    public class XboxContainer : LevelContainer, ITextureContainer
     {
-        public NUXContainer(string format, string path) : base(format, path)
+        public XboxContainer(string format, string path) : base(format, path)
         {
         }
 

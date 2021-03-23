@@ -16,8 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  -->
-<type name="dds_texture">
-  <type name="dds_pixelformat">
+<type name="dds">
+  <type name="pixelformat">
     <attr name="size" type="u4le" />
     <attr name="flags" type="u4le" />
     <attr name="fourCC" type="u4le" />
@@ -27,7 +27,7 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
     <attr name="bBitMask" type="u4le" />
     <attr name="aBitMask" type="u4le" />
   </type>
-  <type name="dds_header">
+  <type name="header">
     <attr name="magic" type="u4le" />
     <attr name="size" type="u4le" />
     <attr name="flags" type="u4le" />
@@ -40,14 +40,14 @@ along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
       <repeat>expr</repeat>
       <repeat-expr>11</repeat-expr>
     </attr>
-    <attr name="pixelFormat" type="dds_pixelformat" />
+    <attr name="pixelFormat" type="pixelformat" />
     <attr name="caps" type="u4le" />
     <attr name="caps2" type="u4le" />
     <attr name="caps3" type="u4le" />
     <attr name="caps4" type="u4le" />
     <attr name="reserved2" type="u4le" />
   </type>
-  <attr name="header" type="dds_header" />
+  <attr name="header" type="header" />
   <attr name="data">
     <size>_self._io._parent.size - _self._io.pos</size>
   </attr>

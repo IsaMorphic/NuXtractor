@@ -24,7 +24,7 @@ using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 
-namespace NuXtractor.Formats.V1
+namespace NuXtractor.LSW1.PCXB
 {
     public class Mesh : Model
     {

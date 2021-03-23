@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<type name="tst0">
+  <type name="texture">
+    <attr type="u4le" name="data_length" />
+    <attr type="u4le" name="padding_length" />
+    <attr name="padding">
+      <size>_self.padding_length</size>
+    </attr>
+    <attr name="data">
+      <size>_self.data_length</size>
+    </attr>
+  </type>
+  <attr type="u4le" name="count" />
+  <attr type="u4le" name="unk001" />
+  <attr type="texture" name="textures">
+    <repeat>expr</repeat>
+    <repeat-expr>
+      (int)_self.count.Value
+    </repeat-expr>
+  </attr>
+</type>

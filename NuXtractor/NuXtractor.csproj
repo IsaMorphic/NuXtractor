@@ -15,7 +15,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="Mighty\*.xml">
+    <None Update="Mighty\**\*.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

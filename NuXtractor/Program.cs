@@ -39,6 +39,8 @@ namespace NuXtractor
 
         NUXv0,
         NUXv1,
+
+        GSCps2,
     }
 
     enum ExtractionMode
@@ -151,13 +153,16 @@ namespace NuXtractor
                 switch (options.FileFormat)
                 {
                     case FileFormat.NUXv0:
-                        file = new Formats.V1.NUXContainer("nux_v0", options.InputFile);
+                        file = new LSW1.PCXB.XboxContainer("games\\lsw1\\xbox\\lvl\\nux_v0", options.InputFile);
                         break;
                     case FileFormat.NUXv1:
-                        file = new Formats.V1.NUXContainer("nux_v1", options.InputFile);
+                        file = new LSW1.PCXB.XboxContainer("games\\lsw1\\xbox\\lvl\\nux_v1", options.InputFile);
                         break;
                     case FileFormat.NUPv1:
-                        file = new Formats.V1.NUPContainer("nup_v1", options.InputFile);
+                        file = new LSW1.PCXB.PCContainer(options.InputFile);
+                        break;
+                    case FileFormat.GSCps2:
+                        file = new LSW1.PS2.LevelContainer(options.InputFile);
                         break;
                 }
 
@@ -436,10 +441,10 @@ namespace NuXtractor
             //    }
             //}
 
-            var file = await OpenContainerAsync(options) as Formats.V1.LevelContainer;
+            var file = await OpenContainerAsync(options) as LSW1.PCXB.LevelContainer;
 
             // Texture resizing/injection
-            var texture = new FormattedFile("dds_texture", options.TextureFile);
+            var texture = new FormattedFile("textures\\dds", options.TextureFile);
             await texture.LoadAsync();
 
             await file.AddTextureAsync((int)texture.data.header.width.Value, (int)texture.data.header.height.Value, (int)texture.data.header.mipmapCount.Value, texture.Stream);
