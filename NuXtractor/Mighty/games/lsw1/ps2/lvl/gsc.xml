@@ -2,11 +2,10 @@
 <type name="gsc">
   <type name="header">
     <attr name="magic" type="u4le" />
-    <attr name="file_size" type="u4le" />
     <attr name="unk000" type="u4le">
       <repeat>expr</repeat>
       <repeat-expr>
-        2
+        3
       </repeat-expr>
     </attr>
   </type>
@@ -21,7 +20,7 @@
   <attr name="sections" type="section">
     <repeat>until</repeat>
     <repeat-until>
-      _self._io.pos >= _self.header.file_size
+      _self._io.pos >= _self._io._parent.size
     </repeat-until>
   </attr>
 </type>
