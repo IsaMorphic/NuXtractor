@@ -19,7 +19,7 @@
   </type>
   <type name="pixels">
     <attr name="unk000">
-      <size>0xBC</size>
+      <size>0xDC</size>
     </attr>
     <attr name="data">
       <size>_self._parent.width * _self._parent.height / ((_self._parent.flag &amp; 1) == 0 ? 2 : 1)</size>

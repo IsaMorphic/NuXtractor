@@ -24,11 +24,41 @@ namespace NuXtractor.Textures
             Width = (int)data.width.Value;
             Height = (int)data.height.Value;
 
-            Palette = new RgbaVector[data.palette.colors.size];
-            for (int i = 0; i < data.palette.colors.size; i++)
+            int numColors = data.palette.colors.size;
+            Palette = new RgbaVector[numColors];
+
+            if (numColors == 16)
             {
-                var color = data.palette.colors[i];
-                Palette[i] = new RgbaVector(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+                for (int i = 0; i < numColors; i++)
+                {
+                    var color = data.palette.colors[i];
+                    Palette[i] = new RgbaVector(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+                }
+            }
+            else if (numColors == 256)
+            {
+                // From Rainbow by Marco Calautti (GPLv2, Copyright 2014+)
+                // https://github.com/marco-calautti/Rainbow/blob/master/Rainbow.ImgLib/ImgLib/Filters/TIM2PaletteFilter.cs
+                int parts = numColors / 32;
+                int stripes = 2;
+                int colors = 8;
+                int blocks = 2;
+
+                int i = 0;
+                for (int part = 0; part < parts; part++)
+                {
+                    for (int block = 0; block < blocks; block++)
+                    {
+                        for (int stripe = 0; stripe < stripes; stripe++)
+                        {
+                            for (int color = 0; color < colors; color++)
+                            {
+                                var c = data.palette.colors[part * colors * stripes * blocks + block * colors + stripe * stripes * colors + color];
+                                Palette[i++] = new RgbaVector(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
+                            }
+                        }
+                    }
+                }
             }
 
             Stream = data.pixels.data;
@@ -39,18 +69,24 @@ namespace NuXtractor.Textures
 
     public class PNTTexture : Texture
     {
+        private Texture Inner { get; }
+
         public PNTTexture(int id, PNTInfo info, Stream stream) : base(id, info.Width, info.Height, 1, stream)
         {
+            if (info.Palette.Length == 16)
+                Inner = new Indexed4BppTexture(id, Width, Height, info.Palette, info.Stream);
+            else
+                Inner = new Indexed8BppTexture(id, Width, Height, info.Palette, info.Stream);
         }
 
         public override Task<Image<RgbaVector>> ReadImageAsync()
         {
-            throw new NotImplementedException();
+            return Inner.ReadImageAsync();
         }
 
         public override Task WriteImageAsync(Image<RgbaVector> pixels)
         {
-            throw new NotImplementedException();
+            return Inner.WriteImageAsync(pixels);
         }
     }
 }
