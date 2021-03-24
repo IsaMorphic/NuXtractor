@@ -16,7 +16,6 @@
  *  along with NuXtractor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using MightyStruct;
 using MightyStruct.Serializers;
 
 using SixLabors.ImageSharp.PixelFormats;
@@ -32,11 +31,8 @@ namespace NuXtractor.Textures.DXT
 {
     public class DXT5Texture : DXT1Texture
     {
-        private ISerializer<byte> Bytes { get; }
-
         public DXT5Texture(int id, int width, int height, int levels, Endianness endianness, Stream stream) : base(id, width, height, levels, endianness, stream)
         {
-            Bytes = new UInt8Serializer();
         }
 
         private float Lerp(float v0, float v1, float t)
@@ -51,8 +47,8 @@ namespace NuXtractor.Textures.DXT
 
         private async Task<float[]> ReadAlphaAsync()
         {
-            byte alpha0 = await Bytes.ReadFromStreamAsync(Stream);
-            byte alpha1 = await Bytes.ReadFromStreamAsync(Stream);
+            var alpha0 = Stream.ReadByte();
+            var alpha1 = Stream.ReadByte();
 
             List<float> alphas = new List<float>
             {
@@ -194,8 +190,8 @@ namespace NuXtractor.Textures.DXT
             var alpha0 = (byte)(palette[0] * 255.0f);
             var alpha1 = (byte)(palette[1] * 255.0f);
 
-            await Bytes.WriteToStreamAsync(Stream, alpha0);
-            await Bytes.WriteToStreamAsync(Stream, alpha1);
+            Stream.WriteByte(alpha0);
+            Stream.WriteByte(alpha1);
 
             var bits = new BitArray(new byte[6]);
 

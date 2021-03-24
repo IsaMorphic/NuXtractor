@@ -36,6 +36,8 @@ namespace NuXtractor.Textures.DXT
         public Endianness Endianness { get; }
 
         protected ISerializer<ushort> Words { get; }
+        protected ISerializer<uint> DWords { get; }
+
         protected PixelBlender<RgbaVector> Pixels { get; }
 
         public DXT1Texture(int id, int width, int height, int levels, Endianness endianness, Stream stream) : base(id, width, height, levels, stream)
@@ -43,6 +45,8 @@ namespace NuXtractor.Textures.DXT
             Endianness = endianness;
 
             Words = new UInt16Serializer(Endianness);
+            DWords = new UInt32Serializer(Endianness);
+
             Pixels = PixelOperations<RgbaVector>.Instance
                 .GetPixelBlender(new GraphicsOptions());
         }
@@ -93,10 +97,7 @@ namespace NuXtractor.Textures.DXT
         {
             RgbaVector[] colors = await ReadPaletteAsync();
 
-            byte[] buffer = new byte[4];
-            await Stream.ReadAsync(buffer, 0, buffer.Length);
-
-
+            byte[] buffer = BitConverter.GetBytes(await DWords.ReadFromStreamAsync(Stream));
             return buffer
                 .SelectMany(r => new int[] { (r & 0xC0) >> 6, (r & 0x30) >> 4, (r & 0x0C) >> 2, (r & 0x03) })
                 .Select(i => colors[i])
@@ -252,7 +253,7 @@ namespace NuXtractor.Textures.DXT
                 buffer[i / 4] = (byte)((indicies[i + 0] << 6) | (indicies[i + 1] << 4) | (indicies[i + 2] << 2) | (indicies[i + 3]));
             }
 
-            await Stream.WriteAsync(buffer, 0, buffer.Length);
+            await DWords.WriteToStreamAsync(Stream, BitConverter.ToUInt32(buffer));
         }
 
         public override async Task WriteImageAsync(Image<RgbaVector> image)

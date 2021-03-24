@@ -34,7 +34,7 @@ namespace NuXtractor.Textures
                 for (int i = 0; i < numColors; i++)
                 {
                     var color = data.palette.colors[i];
-                    Palette[i] = new RgbaVector(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+                    Palette[i] = new RgbaVector(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 127.0f);
                 }
             }
             else if (numColors == 256)
@@ -56,7 +56,7 @@ namespace NuXtractor.Textures
                             for (int color = 0; color < colors; color++)
                             {
                                 var c = data.palette.colors[part * colors * stripes * blocks + block * colors + stripe * stripes * colors + color];
-                                Palette[i++] = new RgbaVector(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
+                                Palette[i++] = new RgbaVector(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 127.0f);
                             }
                         }
                     }

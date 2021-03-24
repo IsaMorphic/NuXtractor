@@ -30,14 +30,11 @@ namespace NuXtractor.Textures.DXT
 {
     public class DXT3Texture : DXT1Texture
     {
-        private ISerializer<byte> Bytes { get; }
-
         public DXT3Texture(int id, int width, int height, int levels, Endianness endianness, Stream stream) : base(id, width, height, levels, endianness, stream)
         {
-            Bytes = new UInt8Serializer();
         }
 
-        private async Task<float[]> ReadAlphaAsync()
+        private Task<float[]> ReadAlphaAsync()
         {
             float[] alphas = new float[16];
 
@@ -45,7 +42,7 @@ namespace NuXtractor.Textures.DXT
             {
                 for (int j = 0; j < 4; j += 2)
                 {
-                    var pair = await Bytes.ReadFromStreamAsync(Stream);
+                    var pair = Stream.ReadByte();
 
                     var left = pair & 0x0F;
                     var right = (pair & 0xF0) >> 4;
@@ -55,7 +52,7 @@ namespace NuXtractor.Textures.DXT
                 }
             }
 
-            return alphas;
+            return Task.FromResult(alphas);
         }
 
         protected override async Task<RgbaVector[]> ReadTileAsync()
@@ -68,7 +65,7 @@ namespace NuXtractor.Textures.DXT
                 .ToArray();
         }
 
-        private async Task WriteAlphaAsync(float[] alphas)
+        private Task WriteAlphaAsync(float[] alphas)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -78,9 +75,11 @@ namespace NuXtractor.Textures.DXT
                     var right = (byte)Math.Clamp(alphas[i * 4 + 3 - (j + 1)] * 15.0f, 0.0f, 15.0f);
 
                     var pair = (byte)(left | (right << 4));
-                    await Bytes.WriteToStreamAsync(Stream, pair);
+                    Stream.WriteByte(pair);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         protected override async Task WriteTileAsync(RgbaVector[] tile)
