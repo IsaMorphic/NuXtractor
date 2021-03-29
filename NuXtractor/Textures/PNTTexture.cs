@@ -63,7 +63,7 @@ namespace NuXtractor.Textures
                 }
             }
 
-            Stream = data.pixels.data;
+            Stream = data.pixels;
 
             return Task.CompletedTask;
         }

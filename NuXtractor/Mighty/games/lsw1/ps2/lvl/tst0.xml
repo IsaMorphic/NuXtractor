@@ -3,11 +3,14 @@
   <type name="texture">
     <attr type="u4le" name="data_length" />
     <attr type="u4le" name="padding_length" />
-    <attr name="padding">
+    <attr name="padding1">
       <size>_self.padding_length</size>
     </attr>
     <attr name="data">
-      <size>_self.data_length</size>
+      <size>_self.data_length - 0x50</size>
+    </attr>
+    <attr name="padding2">
+      <size>0x50</size>
     </attr>
   </type>
   <attr type="u4le" name="count" />

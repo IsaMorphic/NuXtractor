@@ -8,7 +8,7 @@
       <attr type="u1" name="a" />
     </type>
     <attr name="unk000">
-      <size>0x6C</size>
+      <size>0x70</size>
     </attr>
     <attr type="color" name="colors">
       <repeat>expr</repeat>
@@ -17,22 +17,17 @@
       </repeat-expr>
     </attr>
   </type>
-  <type name="pixels">
-    <attr name="unk000">
-      <size>0xDC</size>
-    </attr>
-    <attr name="data">
-      <size>_self._parent.width * _self._parent.height / ((_self._parent.flag &amp; 1) == 0 ? 2 : 1)</size>
-    </attr>
-  </type>
   <attr type="u2le" name="width" />
   <attr type="u2le" name="unk000" />
   <attr type="u2le" name="height" />
   <attr type="u2le" name="unk001" />
   <attr type="u4le" name="unk002" />
   <attr type="u4le" name="flag" />
-  <attr type="u4le" name="palette_length" />
   <attr type="palette" name="palette" />
-  <attr type="u4le" name="pixels_length" />
-  <attr type="pixels" name="pixels" />
+  <attr name="unk003">
+    <size>_self._io._parent.size - _self._io._parent.pos - _self.width * _self.height / ((_self.flag &amp; 1) == 0 ? 2 : 1)</size>
+  </attr>
+  <attr name="pixels">
+    <size>_self.width * _self.height / ((_self.flag &amp; 1) == 0 ? 2 : 1)</size>
+  </attr>
 </type>
