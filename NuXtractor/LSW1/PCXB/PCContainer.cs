@@ -39,7 +39,7 @@ namespace NuXtractor.LSW1.PCXB
             var info = new DDSInfo(stream);
             await info.LoadAsync();
 
-            var texture = new DDSTexture(id, info, stream);
+            var texture = new DDSTexture(id, info);
 
             return texture;
         }

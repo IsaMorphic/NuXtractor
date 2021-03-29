@@ -17,12 +17,12 @@
  */
 
 using CommandLine;
-
+using MightyStruct.Serializers;
 using NuXtractor.Materials;
 using NuXtractor.Models;
 using NuXtractor.Scenes;
 using NuXtractor.Textures;
-
+using NuXtractor.Textures.DXT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -33,7 +33,7 @@ using System.Threading.Tasks;
 
 namespace NuXtractor
 {
-    enum FileFormat
+    enum LevelFormat
     {
         NUPv1,
 
@@ -41,6 +41,21 @@ namespace NuXtractor
         NUXv1,
 
         GSCps2,
+    }
+
+    enum TextureFormat
+    {
+        UNK,
+        DXT1,
+        DXT3,
+        DXT5,
+        DDS,
+        PNT,
+    }
+
+    enum MultiToolMode
+    {
+        TEX,
     }
 
     enum ExtractionMode
@@ -63,25 +78,28 @@ namespace NuXtractor
     {
         [Option('i', "input-file", Required = true, HelpText = "Path to the input file.")]
         public string InputFile { get; set; }
+    }
 
+    class LevelOptions : Options
+    {
         [Option('f', "file-format", Required = true, HelpText = "The format of the specified input file.  Can be NUXv0, NUXv1 or NUPv1")]
-        public FileFormat FileFormat { get; set; }
+        public LevelFormat FileFormat { get; set; }
     }
 
     [Verb("scene", HelpText = "Extract all data from a TT Games data container")]
-    class SceneOptions : Options
+    class SceneOptions : LevelOptions
     {
     }
 
     [Verb("models", HelpText = "Extract model data from a TT Games data container")]
-    class ModelOptions : Options
+    class ModelOptions : LevelOptions
     {
         [Option('w', "write-materials", HelpText = "Flag indicating whether the extraction should include model materials/textures.")]
         public bool WriteMaterials { get; set; }
     }
 
     [Verb("textures", HelpText = "Extract and inject textures into and from a TT Games data container.")]
-    class TextureOptions : Options
+    class TextureOptions : LevelOptions
     {
         [Option('m', "mode", Required = true, HelpText = "The extraction mode to use. Can be DUMP, CONV(ert), INJ(ect)C(onvert), or INJ(ect)D(ump).")]
         public ExtractionMode Mode { get; set; }
@@ -90,8 +108,21 @@ namespace NuXtractor
         public bool WritePatch { get; set; }
     }
 
+    [Verb("multitool", HelpText = "Operate on various asset file formats that NuXtractor supports")]
+    class MultiToolOptions : Options
+    {
+        [Option('m', "tool-mode", Required = true, HelpText = "The tool to select from the multi-tool")]
+        public MultiToolMode Mode { get; set; }
+
+        [Option('t', "texture-format", Required = false, HelpText = "For TEX tool, the primary texture format to be operated over.")]
+        public TextureFormat TextureFormat { get; set; }
+
+        [Option('d', "dimensions", Required = false, HelpText = "For TEX tool, <width>x<height> of the texture")]
+        public string Dimensions { get; set; }
+    }
+
     [Verb("test", HelpText = "test")]
-    class TestOptions : Options
+    class TestOptions : LevelOptions
     {
         [Option('t', "texture-file", Required = true, HelpText = "Path to new texture file.")]
         public string TextureFile { get; set; }
@@ -108,11 +139,12 @@ namespace NuXtractor
         static async Task Main(string[] args)
         {
             await Parser.Default
-                .ParseArguments<TextureOptions, ModelOptions, SceneOptions, TestOptions>(args)
+                .ParseArguments<TextureOptions, ModelOptions, SceneOptions, MultiToolOptions, TestOptions>(args)
                 .MapResult(
                     (TextureOptions opts) => RunTexturesAsync(opts),
                     (ModelOptions opts) => RunModelsAsync(opts),
                     (SceneOptions opts) => RunSceneAsync(opts),
+                    (MultiToolOptions opts) => RunMultiToolAsync(opts),
                     (TestOptions opts) => RunTestAsync(opts),
                     err => Task.CompletedTask
                     );
@@ -139,7 +171,7 @@ namespace NuXtractor
             Console.ResetColor();
         }
 
-        static async Task<FormattedFile> OpenContainerAsync(Options options)
+        static async Task<FormattedFile> OpenContainerAsync(LevelOptions options)
         {
             if (!File.Exists(options.InputFile))
             {
@@ -152,16 +184,16 @@ namespace NuXtractor
             {
                 switch (options.FileFormat)
                 {
-                    case FileFormat.NUXv0:
+                    case LevelFormat.NUXv0:
                         file = new LSW1.PCXB.XboxContainer("games\\lsw1\\xbox\\lvl\\nux_v0", options.InputFile);
                         break;
-                    case FileFormat.NUXv1:
+                    case LevelFormat.NUXv1:
                         file = new LSW1.PCXB.XboxContainer("games\\lsw1\\xbox\\lvl\\nux_v1", options.InputFile);
                         break;
-                    case FileFormat.NUPv1:
+                    case LevelFormat.NUPv1:
                         file = new LSW1.PCXB.PCContainer(options.InputFile);
                         break;
-                    case FileFormat.GSCps2:
+                    case LevelFormat.GSCps2:
                         file = new LSW1.PS2.LevelContainer(options.InputFile);
                         break;
                 }
@@ -181,9 +213,9 @@ namespace NuXtractor
         static void Goodbye()
         {
             WriteLine("Thanks for using NuXtractor, a tool created by Yodadude2003.", OutputImportance.Highlight);
-            WriteLine("Please make sure to credit the tool and creator for any public usage of the textures it extracts.", OutputImportance.Highlight);
-            WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com", OutputImportance.Highlight);
-            WriteLine("Copyright (C) 2020 Chosen Few Software", OutputImportance.Highlight);
+            WriteLine("Please make sure to credit the tool and creator for any public usage of the assets it extracts.", OutputImportance.Highlight);
+            WriteLine("For more software from Chosen Few Software, visit https://www.chosenfewsoftware.com/", OutputImportance.Highlight);
+            WriteLine("Copyright (C) 2021 Chosen Few Software", OutputImportance.Highlight);
         }
 
         static async Task RunTexturesAsync(TextureOptions options)
@@ -420,6 +452,81 @@ namespace NuXtractor
                     await obj.WriteToOBJAsync(writer);
                     WriteLine($"Wrote object with name: {obj.Name} to {objPath}.", OutputImportance.Verbose);
                 }
+            }
+
+            Goodbye();
+        }
+
+        static async Task<Texture> OpenTextureFileAsync(MultiToolOptions options)
+        {
+            if (!File.Exists(options.InputFile))
+            {
+                WriteLine("Error: The specified input file does not exist. Check any paths or filenames to make sure they are correct.", OutputImportance.Error);
+                return null;
+            }
+
+            Texture texture = null;
+            try
+            {
+                var inputFile = File.OpenRead(options.InputFile);
+
+                int width = -1;
+                int height = -1;
+
+                if (options.Dimensions != null)
+                {
+                    var tokens = options.Dimensions.Split('x');
+
+                    width = int.Parse(tokens[0]);
+                    height = int.Parse(tokens[1]);
+                }
+
+                switch (options.TextureFormat)
+                {
+                    case TextureFormat.DXT1:
+                        texture = new DXT1Texture(-1, width, height, 1, Endianness.LittleEndian, inputFile);
+                        break;
+                    case TextureFormat.DXT3:
+                        texture = new DXT3Texture(-1, width, height, 1, Endianness.LittleEndian, inputFile);
+                        break;
+                    case TextureFormat.DXT5:
+                        texture = new DXT5Texture(-1, width, height, 1, Endianness.LittleEndian, inputFile);
+                        break;
+                    case TextureFormat.DDS:
+                        var ddsInfo = new DDSInfo(inputFile);
+                        await ddsInfo.LoadAsync();
+                        texture = new DDSTexture(-1, ddsInfo);
+                        break;
+                    case TextureFormat.PNT:
+                        var pntInfo = new PNTInfo(inputFile);
+                        await pntInfo.LoadAsync();
+                        texture = new PNTTexture(-1, pntInfo);
+                        break;
+                }
+
+                return texture;
+            }
+            catch (Exception)
+            {
+                WriteLine("Error: The input file could not be parsed in the chosen format.", OutputImportance.Error);
+                throw;
+            }
+        }
+
+        static async Task RunMultiToolAsync(MultiToolOptions options)
+        {
+            WriteLine($"Running MultiTool, selected mode: {options.Mode}");
+            switch (options.Mode)
+            {
+                case MultiToolMode.TEX:
+                    var outputPath = options.InputFile + ".png";
+                    var texture = await OpenTextureFileAsync(options);
+
+                    var image = await texture.ReadImageAsync();
+                    await image.SaveAsPngAsync(outputPath);
+
+                    WriteLine($"Wrote output to {outputPath}");
+                    break;
             }
 
             Goodbye();

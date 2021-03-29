@@ -26,7 +26,7 @@ namespace NuXtractor.LSW1.PS2
             var info = new PNTInfo(stream);
             await info.LoadAsync();
 
-            var texture = new PNTTexture(id, info, stream);
+            var texture = new PNTTexture(id, info);
             return texture;
         }
     }

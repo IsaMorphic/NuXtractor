@@ -73,12 +73,12 @@ namespace NuXtractor.Textures
     {
         private Texture Inner { get; }
 
-        public PNTTexture(int id, PNTInfo info, Stream stream) : base(id, info.Width, info.Height, 1, stream)
+        public PNTTexture(int id, PNTInfo info) : base(id, info.Width, info.Height, 1, info.Stream)
         {
             if (info.Palette.Length == 16)
-                Inner = new Indexed4BppTexture(id, Width, Height, info.Palette, info.Stream);
+                Inner = new Indexed4BppTexture(id, Width, Height, info.Palette, Stream);
             else
-                Inner = new Indexed8BppTexture(id, Width, Height, info.Palette, info.Stream);
+                Inner = new Indexed8BppTexture(id, Width, Height, info.Palette, Stream);
         }
 
         public override Task<Image<RgbaVector>> ReadImageAsync()

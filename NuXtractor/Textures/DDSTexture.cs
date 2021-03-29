@@ -86,7 +86,7 @@ namespace NuXtractor.Textures
     {
         private DXT1Texture Inner { get; }
 
-        public DDSTexture(int id, DDSInfo info, Stream stream) : base(id, info.Width, info.Height, info.Levels, stream)
+        public DDSTexture(int id, DDSInfo info) : base(id, info.Width, info.Height, info.Levels, info.Stream)
         {
             switch (info.PixelFormat)
             {
